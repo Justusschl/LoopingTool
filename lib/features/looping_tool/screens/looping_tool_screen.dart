@@ -36,20 +36,26 @@ class LoopingToolScreen extends StatelessWidget {
               const SizedBox(height: 10),
 
               // Play/Pause Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => audioService.play(),
-                    child: const Text('Play'),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () => audioService.pause(),
-                    child: const Text('Pause'),
-                  ),
-                ],
+              Consumer<AudioService>(
+                builder: (context, audioService, _) {
+                  final isPlaying = audioService.isPlaying;
+
+                  return Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        if (isPlaying) {
+                          audioService.pause();
+                        } else {
+                          audioService.play();
+                        }
+                      },
+                      icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+                      label: Text(isPlaying ? 'Pause' : 'Play'),
+                    ),
+                  );
+                },
               ),
+
               const SizedBox(height: 20),
 
               // Timeline slider with marker selection
