@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
+
 import '../../../core/services/audio_service.dart';
 import '../viewmodels/looping_tool_viewmodel.dart';
 import '../widgets/song_timeline_slider.dart';
-import '../widgets/segment_selector.dart';
 import '../widgets/loop_settings_panel.dart';
+import '../widgets/segment_selector.dart';
 
 class LoopingToolScreen extends StatelessWidget {
   const LoopingToolScreen({super.key});
@@ -12,61 +14,44 @@ class LoopingToolScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<LoopingToolViewModel>(context);
-    final audioService = Provider.of<AudioService>(context, listen: false);
+    final audioService = Provider.of<AudioService>(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Looping Tool MVP')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             ElevatedButton(
               onPressed: () async {
-                final result = await vm.pickAudioFile();
-                if (result != null) {
-                  await audioService.loadFile(result);
-                  vm.setAudioFile(result);
+                final result = await FilePicker.platform.pickFiles(type: FileType.audio);
+                if (result != null && result.files.single.path != null) {
+                  await audioService.loadFile(result.files.single.path!);
+                  vm.setAudioFile(result.files.single.path!);
                 }
               },
               child: const Text('Upload Audio File'),
             ),
             const SizedBox(height: 20),
+
             if (vm.audioFilePath != null) ...[
               Text('Loaded: ${vm.audioFilePath!.split('/').last}'),
-              const SizedBox(height: 10),
-
-              // Play/Pause Buttons
-              Consumer<AudioService>(
-                builder: (context, audioService, _) {
-                  final isPlaying = audioService.isPlaying;
-
-                  return Center(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        if (isPlaying) {
-                          audioService.pause();
-                        } else {
-                          audioService.play();
-                        }
-                      },
-                      icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                      label: Text(isPlaying ? 'Pause' : 'Play'),
-                    ),
-                  );
-                },
-              ),
-
               const SizedBox(height: 20),
 
-              // Timeline slider with marker selection
+              // Play/Pause toggle button
+              ElevatedButton(
+                onPressed: () {
+                  audioService.isPlaying ? audioService.pause() : audioService.play();
+                },
+                child: Text(audioService.isPlaying ? 'Pause' : 'Play'),
+              ),
+
+              const SizedBox(height: 30),
               const SongTimelineSlider(),
-              const SizedBox(height: 30),
 
-              // Loop settings (speed, count, break)
+              const SizedBox(height: 20),
               const LoopSettingsPanel(),
-              const SizedBox(height: 30),
-
-              // Loop trigger UI
+              const SizedBox(height: 20),
               SegmentSelector(audioService: audioService),
             ],
           ],
