@@ -17,16 +17,18 @@ class _SegmentSelectorState extends State<SegmentSelector> {
   double _loopSliderValue = 0.0;
   Duration? _loopDuration;
   Duration? _loopStart;
+  late final AudioService audioService;
 
   @override
   void initState() {
     super.initState();
-    widget.audioService.addListener(_updateLoopSlider);
+    audioService = widget.audioService;
+    audioService.addListener(_updateLoopSlider);
   }
 
   @override
   void dispose() {
-    widget.audioService.removeListener(_updateLoopSlider);
+    audioService.removeListener(_updateLoopSlider);
     super.dispose();
   }
 
@@ -35,7 +37,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
     final segment = vm.selectedSegment;
     if (segment == null) return;
 
-    final position = widget.audioService.loopPlayerPosition;
+    final position = audioService.position;
     final start = segment.start.timestamp;
     final end = segment.end.timestamp;
     final duration = end - start;
@@ -57,23 +59,26 @@ class _SegmentSelectorState extends State<SegmentSelector> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const Text("Select Segment to Loop"),
+        const SizedBox(height: 8),
         ElevatedButton(
           onPressed: () {
-            final timestamp = widget.audioService.position; // use main player
+            final timestamp = audioService.position;
             final label = String.fromCharCode(65 + vm.markers.length);
             vm.addMarker(label, timestamp);
           },
           child: const Text("Set Marker"),
         ),
-        const SizedBox(height: 8),
-        if (vm.markers.isNotEmpty)
-          Wrap(
-            spacing: 8,
-            children: vm.markers
-                .map((m) => Chip(label: Text("${m.label}: ${_formatDuration(m.timestamp)}")))
-                .toList(),
-          ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          children: vm.markers.map((m) {
+            return Chip(
+              label: Text("${m.label}: ${_formatDuration(m.timestamp)}"),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 12),
         if (vm.markers.length < 2)
           const Text("Add at least 2 markers to define a segment."),
         if (vm.markers.length >= 2) ...[
@@ -130,29 +135,25 @@ class _SegmentSelectorState extends State<SegmentSelector> {
             child: const Text("Loop Selected Segment"),
           ),
           const SizedBox(height: 24),
-          if (_loopDuration != null && _loopStart != null)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text("Loop Segment Timeline"),
-                Slider(
-                  value: _loopSliderValue,
-                  min: 0.0,
-                  max: _loopDuration!.inMilliseconds.toDouble(),
-                  onChanged: (_) {},
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(_formatDuration(Duration.zero)),
-                      Text(_formatDuration(_loopDuration!)),
-                    ],
-                  ),
-                ),
-              ],
+          if (vm.selectedSegment != null) ...[
+            const Text("Loop Segment Timeline"),
+            Slider(
+              value: _loopSliderValue,
+              min: 0.0,
+              max: _loopDuration?.inMilliseconds.toDouble() ?? 1,
+              onChanged: (_) {},
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("00:00"),
+                  Text(_formatDuration(_loopDuration ?? Duration.zero)),
+                ],
+              ),
+            ),
+          ],
         ],
       ],
     );
