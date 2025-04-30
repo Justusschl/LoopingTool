@@ -82,6 +82,8 @@ class LoopingToolViewModel extends ChangeNotifier {
       orElse: () => Marker(label: '', timestamp: Duration.zero),
     );
 
+    print('Selecting segment: $startLabel (${start.timestamp}) to $endLabel (${end.timestamp})');
+
     if (start.label.isEmpty || end.label.isEmpty) {
       _errorMessage = 'Invalid segment: Start or end marker not found';
       selectedSegment = null;
