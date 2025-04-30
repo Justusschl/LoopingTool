@@ -8,6 +8,8 @@ import '../widgets/song_timeline_slider.dart';
 import '../widgets/loop_settings_panel.dart';
 import '../widgets/segment_selector.dart';
 
+/// Main screen for the Looping Tool MVP
+/// This screen allows users to upload an audio file, play/pause it, and set loop settings.
 class LoopingToolScreen extends StatelessWidget {
   const LoopingToolScreen({super.key});
 

@@ -14,42 +14,12 @@ class SegmentSelector extends StatefulWidget {
 }
 
 class _SegmentSelectorState extends State<SegmentSelector> {
-  double _loopSliderValue = 0.0;
-  Duration? _loopDuration;
-  Duration? _loopStart;
   late final AudioService audioService;
 
   @override
   void initState() {
     super.initState();
     audioService = widget.audioService;
-    audioService.addListener(_updateLoopSlider);
-  }
-
-  @override
-  void dispose() {
-    audioService.removeListener(_updateLoopSlider);
-    super.dispose();
-  }
-
-  void _updateLoopSlider() {
-    final vm = context.read<LoopingToolViewModel>();
-    final segment = vm.selectedSegment;
-    if (segment == null) return;
-
-    final position = audioService.position;
-    final start = segment.start.timestamp;
-    final end = segment.end.timestamp;
-    final duration = end - start;
-    final relativePos = position - start;
-
-    if (relativePos >= Duration.zero && relativePos <= duration) {
-      setState(() {
-        _loopSliderValue = relativePos.inMilliseconds.toDouble();
-        _loopDuration = duration;
-        _loopStart = start;
-      });
-    }
   }
 
   @override
@@ -70,56 +40,82 @@ class _SegmentSelectorState extends State<SegmentSelector> {
           child: const Text("Set Marker"),
         ),
         const SizedBox(height: 12),
+        if (vm.errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Text(
+              vm.errorMessage!,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
         Wrap(
           spacing: 8,
           children: vm.markers.map((m) {
             return Chip(
               label: Text("${m.label}: ${_formatDuration(m.timestamp)}"),
+              onDeleted: () {
+                // TODO: Implement marker deletion
+              },
             );
           }).toList(),
         ),
         const SizedBox(height: 12),
         if (vm.markers.length < 2)
           const Text("Add at least 2 markers to define a segment."),
-        if (vm.markers.length >= 2) ...[
-          Row(
-            children: [
-              DropdownButton<String>(
-                hint: const Text("Start"),
-                value: vm.selectedSegment?.start.label,
-                items: vm.markers
-                    .map((m) => DropdownMenuItem(
-                          value: m.label,
-                          child: Text(m.label),
-                        ))
-                    .toList(),
-                onChanged: (label) {
-                  if (label != null && vm.selectedSegment?.end.label != label) {
-                    vm.selectSegmentByLabels(
-                        label, vm.selectedSegment?.end.label ?? label);
+        Row(
+          children: [
+            DropdownButton<String>(
+              hint: const Text("Start"),
+              value: vm.selectedSegment?.start.label,
+              items: vm.markers
+                  .map((m) => DropdownMenuItem(
+                        value: m.label,
+                        child: Text("${m.label} (${_formatDuration(m.timestamp)})"),
+                      ))
+                  .toList(),
+              onChanged: (label) {
+                if (label != null) {
+                  final endLabel = vm.selectedSegment?.end.label;
+                  if (endLabel != null && endLabel != label) {
+                    vm.selectSegmentByLabels(label, endLabel);
+                  } else {
+                    // If no end selected yet, use the next marker
+                    final currentIndex = vm.markers.indexWhere((m) => m.label == label);
+                    if (currentIndex < vm.markers.length - 1) {
+                      vm.selectSegmentByLabels(label, vm.markers[currentIndex + 1].label);
+                    }
                   }
-                },
-              ),
-              const SizedBox(width: 16),
-              DropdownButton<String>(
-                hint: const Text("End"),
-                value: vm.selectedSegment?.end.label,
-                items: vm.markers
-                    .map((m) => DropdownMenuItem(
-                          value: m.label,
-                          child: Text(m.label),
-                        ))
-                    .toList(),
-                onChanged: (label) {
-                  if (label != null && vm.selectedSegment?.start.label != label) {
-                    vm.selectSegmentByLabels(
-                        vm.selectedSegment?.start.label ?? label, label);
+                }
+              },
+            ),
+            const SizedBox(width: 16),
+            DropdownButton<String>(
+              hint: const Text("End"),
+              value: vm.selectedSegment?.end.label,
+              items: vm.markers
+                  .map((m) => DropdownMenuItem(
+                        value: m.label,
+                        child: Text("${m.label} (${_formatDuration(m.timestamp)})"),
+                      ))
+                  .toList(),
+              onChanged: (label) {
+                if (label != null) {
+                  final startLabel = vm.selectedSegment?.start.label;
+                  if (startLabel != null && startLabel != label) {
+                    vm.selectSegmentByLabels(startLabel, label);
                   }
-                },
-              ),
-            ],
+                }
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        if (vm.selectedSegment != null) ...[
+          Text(
+            "Selected Segment: ${_formatDuration(vm.selectedSegment!.duration)}",
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 8),
           ElevatedButton(
             onPressed: () {
               final segment = vm.selectedSegment;
@@ -134,26 +130,6 @@ class _SegmentSelectorState extends State<SegmentSelector> {
             },
             child: const Text("Loop Selected Segment"),
           ),
-          const SizedBox(height: 24),
-          if (vm.selectedSegment != null) ...[
-            const Text("Loop Segment Timeline"),
-            Slider(
-              value: _loopSliderValue,
-              min: 0.0,
-              max: _loopDuration?.inMilliseconds.toDouble() ?? 1,
-              onChanged: (_) {},
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text("00:00"),
-                  Text(_formatDuration(_loopDuration ?? Duration.zero)),
-                ],
-              ),
-            ),
-          ],
         ],
       ],
     );
@@ -162,6 +138,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
   String _formatDuration(Duration d) {
     final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$minutes:$seconds';
+    final milliseconds = (d.inMilliseconds % 1000).toString().padLeft(3, '0');
+    return '$minutes:$seconds.$milliseconds';
   }
 }
