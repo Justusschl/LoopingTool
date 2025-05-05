@@ -36,7 +36,16 @@ class LoopingToolExperimentScreen extends StatelessWidget {
                 onPressed: () {
                   audioService.isPlaying ? audioService.pause() : audioService.play();
                 },
-                child: Text(audioService.isPlaying ? 'Pause' : 'Play'),
+                style: ElevatedButton.styleFrom(
+                  shape: const CircleBorder(),
+                  padding: const EdgeInsets.all(16),
+                  backgroundColor: Colors.white, // or your preferred color
+                  foregroundColor: Colors.black, // icon color
+                ),
+                child: Icon(
+                  audioService.isPlaying ? Icons.pause : Icons.play_arrow,
+                  size: 32,
+                ),
               ),
 
               const SizedBox(height: 30),

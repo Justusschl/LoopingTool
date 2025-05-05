@@ -57,7 +57,9 @@ class AudioService extends ChangeNotifier {
   /// Loads an audio file into both players (main and legacy loop player)
   Future<void> loadFile(String path) async {
     await _mainPlayer.setFilePath(path);
+    await _mainPlayer.setVolume(1.0);
     await _loopPlayer.setFilePath(path);
+    await _loopPlayer.setVolume(1.0);
     notifyListeners();
   }
 

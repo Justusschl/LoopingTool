@@ -124,4 +124,14 @@ class LoopingToolViewModel extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
+
+  void removeMarker(Marker marker) {
+    markers.remove(marker);
+    // If the removed marker was part of the selected segment, clear the selection
+    if (selectedSegment != null &&
+        (selectedSegment!.start == marker || selectedSegment!.end == marker)) {
+      selectedSegment = null;
+    }
+    notifyListeners();
+  }
 }

@@ -4,6 +4,7 @@ import '../../../theme/app_colors.dart';
 import '../viewmodels/looping_tool_viewmodel.dart';
 import '../../../core/services/audio_service.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:marquee/marquee.dart';
 
 class LoopingToolHeader extends StatelessWidget {
   const LoopingToolHeader({super.key});
@@ -63,10 +64,22 @@ class LoopingToolHeader extends StatelessWidget {
         Row(
           children: [
             if (vm.audioFilePath != null) ...[
-              // Show info if audio loaded
-              Text(
-                vm.audioFilePath!.split('/').last,
-                style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
+              SizedBox(
+                width: 140, // Adjust width as needed for your layout
+                height: 20,
+                child: Marquee(
+                  text: vm.audioFilePath!.split('/').last,
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                  scrollAxis: Axis.horizontal,
+                  blankSpace: 40.0,
+                  velocity: 30.0,
+                  pauseAfterRound: Duration(seconds: 1),
+                  startPadding: 10.0,
+                  accelerationDuration: Duration(seconds: 1),
+                  accelerationCurve: Curves.linear,
+                  decelerationDuration: Duration(milliseconds: 500),
+                  decelerationCurve: Curves.easeOut,
+                ),
               ),
               const SizedBox(width: 12),
               Text(

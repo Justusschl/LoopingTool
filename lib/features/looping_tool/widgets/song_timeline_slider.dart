@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/audio_service.dart';
 import '../widgets/custom_timeline.dart';
+import '../viewmodels/looping_tool_viewmodel.dart';
 
 class SongTimelineSlider extends StatelessWidget {
   const SongTimelineSlider({super.key});
@@ -9,8 +10,10 @@ class SongTimelineSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final audioService = Provider.of<AudioService>(context);
+    final vm = Provider.of<LoopingToolViewModel>(context);
     final duration = audioService.duration;
     final position = audioService.position;
+    final markers = vm.markers;
 
     if (duration == null || duration == Duration.zero) {
       // No audio loaded: show an empty timeline bar
@@ -40,10 +43,46 @@ class SongTimelineSlider extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Slider(
-          value: position.inMilliseconds.clamp(0, duration.inMilliseconds).toDouble(),
-          max: duration.inMilliseconds.toDouble(),
-          onChanged: (value) => audioService.seek(Duration(milliseconds: value.round())),
+        Stack(
+          children: [
+            // The slider
+            Slider(
+              value: position.inMilliseconds.clamp(0, duration.inMilliseconds).toDouble(),
+              max: duration.inMilliseconds.toDouble(),
+              onChanged: (value) => audioService.seek(Duration(milliseconds: value.round())),
+            ),
+            // Markers overlay
+            if (duration.inMilliseconds > 0)
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16), // Default slider padding
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final trackWidth = constraints.maxWidth;
+                      const markerWidth = 3.0;
+                      return Stack(
+                        children: markers.map((marker) {
+                          final markerRatio = marker.timestamp.inMilliseconds / duration.inMilliseconds;
+                          final left = (markerRatio * trackWidth) - (markerWidth / 2) + 7; // +4 to center the marker
+                          return Positioned(
+                            left: left,
+                            top: 0,
+                            bottom: 0,
+                            child: Container(
+                              width: markerWidth,
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(markerWidth / 2),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
+                ),
+              ),
+          ],
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),

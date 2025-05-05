@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/looping_tool_viewmodel.dart';
+import 'loop_count_selector.dart';
 
 class LoopSettingsPanel extends StatelessWidget {
   const LoopSettingsPanel({super.key});
@@ -23,16 +24,13 @@ class LoopSettingsPanel extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         const Text("Loop Count"),
-        DropdownButton<int>(
-          value: vm.loopCount,
-          items: List.generate(10, (i) => i + 1)
-              .map((count) => DropdownMenuItem(
-                    value: count,
-                    child: Text("$count"),
-                  ))
-              .toList(),
-          onChanged: (value) {
-            if (value != null) vm.setLoopCount(value);
+        LoopCountSelector(
+          loopCount: vm.loopCount,
+          onIncrement: () {
+            if (vm.loopCount < 99) vm.setLoopCount(vm.loopCount + 1);
+          },
+          onDecrement: () {
+            if (vm.loopCount > 1) vm.setLoopCount(vm.loopCount - 1);
           },
         ),
         const SizedBox(height: 10),

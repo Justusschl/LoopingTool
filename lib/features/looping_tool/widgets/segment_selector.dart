@@ -54,7 +54,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
             return Chip(
               label: Text("${m.label}: ${_formatDuration(m.timestamp)}"),
               onDeleted: () {
-                // TODO: Implement marker deletion
+                vm.removeMarker(m);
               },
             );
           }).toList(),

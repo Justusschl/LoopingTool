@@ -36,6 +36,7 @@ dependencies:
   just_waveform: ^0.0.7
   path_provider: ^2.1.2
   waveform_flutter: ^1.2.0
+  marquee: ^2.2.3
 
 
 dev_dependencies:
