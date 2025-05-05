@@ -16,6 +16,9 @@ class LoopingToolViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  bool _preludeEnabled = false;
+  bool get preludeEnabled => _preludeEnabled;
+
   void setAudioFile(String path) {
     audioFilePath = path;
     markers.clear();
@@ -132,6 +135,11 @@ class LoopingToolViewModel extends ChangeNotifier {
         (selectedSegment!.start == marker || selectedSegment!.end == marker)) {
       selectedSegment = null;
     }
+    notifyListeners();
+  }
+
+  void setPreludeEnabled(bool value) {
+    _preludeEnabled = value;
     notifyListeners();
   }
 }

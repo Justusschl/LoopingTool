@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../viewmodels/looping_tool_viewmodel.dart';
 import '../../../core/services/audio_service.dart';
+import 'loop_count_selector.dart';
+import 'playback_speed_selector.dart';
 
 class SegmentSelector extends StatefulWidget {
   final AudioService audioService;
@@ -29,38 +31,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 8),
-        ElevatedButton(
-          onPressed: () {
-            final timestamp = audioService.position;
-            final label = String.fromCharCode(65 + vm.markers.length);
-            vm.addMarker(label, timestamp);
-          },
-          child: const Text("Set Marker"),
-        ),
         const SizedBox(height: 12),
-        if (vm.errorMessage != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Text(
-              vm.errorMessage!,
-              style: const TextStyle(color: Colors.red),
-            ),
-          ),
-        Wrap(
-          spacing: 8,
-          children: vm.markers.map((m) {
-            return Chip(
-              label: Text("${m.label}: ${_formatDuration(m.timestamp)}"),
-              onDeleted: () {
-                vm.removeMarker(m);
-              },
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 12),
-        if (vm.markers.length < 2)
-          const Text("Add at least 2 markers to define a segment."),
         Row(
           children: [
             DropdownButton<String>(
@@ -112,22 +83,60 @@ class _SegmentSelectorState extends State<SegmentSelector> {
         if (vm.selectedSegment != null) ...[
           Text(
             "Selected Segment: ${_formatDuration(vm.selectedSegment!.duration)}",
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           ),
-          const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed: () {
-              final segment = vm.selectedSegment;
-              if (segment != null) {
-                widget.audioService.loopSegment(
-                  segment.start.timestamp,
-                  segment.end.timestamp,
-                  vm.loopCount,
-                  vm.breakDuration,
-                );
-              }
-            },
-            child: const Text("Loop Selected Segment"),
+          const SizedBox(height: 4),
+          SizedBox(
+            height: 32,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                textStyle: TextStyle(fontSize: 13),
+                minimumSize: Size(0, 32),
+              ),
+              onPressed: () {
+                final segment = vm.selectedSegment;
+                if (segment != null) {
+                  widget.audioService.loopSegment(
+                    segment.start.timestamp,
+                    segment.end.timestamp,
+                    vm.loopCount,
+                    vm.breakDuration,
+                  );
+                }
+              },
+              child: const Text("Loop Selected Segment"),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              SizedBox(
+                height: 28,
+                child: LoopCountSelector(
+                  loopCount: vm.loopCount,
+                  onIncrement: () {
+                    if (vm.loopCount < 99) vm.setLoopCount(vm.loopCount + 1);
+                  },
+                  onDecrement: () {
+                    if (vm.loopCount > 1) vm.setLoopCount(vm.loopCount - 1);
+                  },
+                ),
+              ),
+              SizedBox(
+                height: 28,
+                child: PlaybackSpeedSelector(
+                  speed: vm.playbackSpeed,
+                  onDecrement: () => vm.setPlaybackSpeed(
+                    (vm.playbackSpeed - 0.1).clamp(0.7, 1.2),
+                  ),
+                  onIncrement: () => vm.setPlaybackSpeed(
+                    (vm.playbackSpeed + 0.1).clamp(0.7, 1.2),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ],

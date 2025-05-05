@@ -94,11 +94,6 @@ class SongTimelineSlider extends StatelessWidget {
             ],
           ),
         ),
-        AnimatedTimeline(
-          positionSeconds: audioService.position.inSeconds.toDouble(),
-          totalSeconds: audioService.duration?.inSeconds ?? 150,
-          windowSeconds: 30,
-        ),
       ],
     );
   }
