@@ -71,7 +71,7 @@ class SongTimelineSlider extends StatelessWidget {
                             child: Container(
                               width: markerWidth,
                               decoration: BoxDecoration(
-                                color: Colors.red,
+                                color: const Color.fromARGB(255, 255, 255, 255),
                                 borderRadius: BorderRadius.circular(markerWidth / 2),
                               ),
                             ),

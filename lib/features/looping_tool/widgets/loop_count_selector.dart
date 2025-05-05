@@ -6,48 +6,52 @@ class LoopCountSelector extends StatelessWidget {
   final VoidCallback onDecrement;
 
   const LoopCountSelector({
-    super.key,
+    Key? key,
     required this.loopCount,
     required this.onIncrement,
     required this.onDecrement,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Minus button
-        IconButton(
-          onPressed: onDecrement,
-          icon: Icon(Icons.remove, color: Colors.white, size: 24),
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shape: CircleBorder(side: BorderSide(color: Colors.white, width: 2)),
-            padding: EdgeInsets.all(8),
+        InkWell(
+          onTap: onDecrement,
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 1.2),
+            ),
+            child: Center(
+              child: Icon(Icons.remove, color: Colors.white, size: 16),
+            ),
           ),
         ),
-        const SizedBox(width: 8),
-        // Loop icon and count
-        Row(
-          children: [
-            Icon(Icons.repeat, color: Colors.white, size: 28),
-            const SizedBox(width: 4),
-            Text(
-              '$loopCount',
-              style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-          ],
+        SizedBox(width: 8),
+        Icon(Icons.repeat, color: Colors.white, size: 18),
+        SizedBox(width: 4),
+        Text(
+          '$loopCount',
+          style: TextStyle(fontSize: 16, color: Colors.white),
         ),
-        const SizedBox(width: 8),
-        // Plus button
-        IconButton(
-          onPressed: onIncrement,
-          icon: Icon(Icons.add, color: Colors.white, size: 24),
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shape: CircleBorder(side: BorderSide(color: Colors.white, width: 2)),
-            padding: EdgeInsets.all(8),
+        SizedBox(width: 8),
+        InkWell(
+          onTap: onIncrement,
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 1.2),
+            ),
+            child: Center(
+              child: Icon(Icons.add, color: Colors.white, size: 16),
+            ),
           ),
         ),
       ],

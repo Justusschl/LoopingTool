@@ -29,7 +29,6 @@ class _SegmentSelectorState extends State<SegmentSelector> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Select Segment to Loop"),
         const SizedBox(height: 8),
         ElevatedButton(
           onPressed: () {
