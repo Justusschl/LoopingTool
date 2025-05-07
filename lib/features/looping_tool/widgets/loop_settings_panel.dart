@@ -36,22 +36,14 @@ class _LoopSettingsPanelState extends State<LoopSettingsPanel> {
               },
             ),
             PlaybackSpeedSelector(
-              speed: playbackSpeed,
+              speed: vm.playbackSpeed,
               onDecrement: () {
-                setState(() {
-                  if (playbackSpeed > 0.7) {
-                    playbackSpeed = (playbackSpeed - 0.1).clamp(0.7, 1.2);
-                    playbackSpeed = double.parse(playbackSpeed.toStringAsFixed(1));
-                  }
-                });
+                final newSpeed = (vm.playbackSpeed - 0.1).clamp(0.7, 1.2);
+                vm.setPlaybackSpeed(newSpeed);
               },
               onIncrement: () {
-                setState(() {
-                  if (playbackSpeed < 1.2) {
-                    playbackSpeed = (playbackSpeed + 0.1).clamp(0.7, 1.2);
-                    playbackSpeed = double.parse(playbackSpeed.toStringAsFixed(1));
-                  }
-                });
+                final newSpeed = (vm.playbackSpeed + 0.1).clamp(0.7, 1.2);
+                vm.setPlaybackSpeed(newSpeed);
               },
             ),
           ],

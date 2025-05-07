@@ -22,6 +22,9 @@ class AudioService extends ChangeNotifier {
   bool get isPlaying => _mainPlayer.playing;
   Duration get position => _position;
 
+  double _playbackSpeed = 1.0;
+  double get playbackSpeed => _playbackSpeed;
+
   AudioService() {
     // Listen to the main player's position to handle looping logic
     _mainPlayer.positionStream.listen((pos) {
@@ -102,6 +105,7 @@ class AudioService extends ChangeNotifier {
     _remainingLoops = loopCount - 1; // First play counts as the first loop
     _isLooping = true;
     _breakSeconds = breakSeconds;
+    await setPlaybackSpeed(playbackSpeed); // Set speed before playing
     await _mainPlayer.seek(start);
     await _mainPlayer.play();
   }
@@ -157,6 +161,12 @@ class AudioService extends ChangeNotifier {
       _waitingForNextLoop = false;
       print('Looping finished and paused at end');
     }
+  }
+
+  Future<void> setPlaybackSpeed(double speed) async {
+    _playbackSpeed = speed;
+    await _mainPlayer.setSpeed(speed);
+    notifyListeners();
   }
 
   @override

@@ -2,10 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:looping_tool_mvp/data/models/marker.dart';
 import 'package:looping_tool_mvp/data/models/segment.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:looping_tool_mvp/core/services/audio_service.dart';
 
 class LoopingToolViewModel extends ChangeNotifier {
   String? audioFilePath;
-  double playbackSpeed = 1.0;
+  double _playbackSpeed = 1.0;
+  double get playbackSpeed => _playbackSpeed;
   int loopCount = 1;
   int breakDuration = 0;
 
@@ -18,6 +20,8 @@ class LoopingToolViewModel extends ChangeNotifier {
 
   bool _preludeEnabled = false;
   bool get preludeEnabled => _preludeEnabled;
+
+  late AudioService audioService;
 
   void setAudioFile(String path) {
     audioFilePath = path;
@@ -40,7 +44,8 @@ class LoopingToolViewModel extends ChangeNotifier {
   }
 
   void setPlaybackSpeed(double speed) {
-    playbackSpeed = speed;
+    _playbackSpeed = speed;
+    audioService.setPlaybackSpeed(speed);
     notifyListeners();
   }
 

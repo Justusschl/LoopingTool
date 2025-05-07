@@ -128,12 +128,14 @@ class _SegmentSelectorState extends State<SegmentSelector> {
                 height: 28,
                 child: PlaybackSpeedSelector(
                   speed: vm.playbackSpeed,
-                  onDecrement: () => vm.setPlaybackSpeed(
-                    (vm.playbackSpeed - 0.1).clamp(0.7, 1.2),
-                  ),
-                  onIncrement: () => vm.setPlaybackSpeed(
-                    (vm.playbackSpeed + 0.1).clamp(0.7, 1.2),
-                  ),
+                  onDecrement: () {
+                    final newSpeed = (vm.playbackSpeed - 0.1).clamp(0.7, 1.2);
+                    vm.setPlaybackSpeed(newSpeed);
+                  },
+                  onIncrement: () {
+                    final newSpeed = (vm.playbackSpeed + 0.1).clamp(0.7, 1.2);
+                    vm.setPlaybackSpeed(newSpeed);
+                  },
                 ),
               ),
             ],

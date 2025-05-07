@@ -16,11 +16,15 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider<LoopingToolViewModel>(
-          create: (_) => LoopingToolViewModel(),
-        ),
         ChangeNotifierProvider<AudioService>(
           create: (_) => AudioService(),
+        ),
+        ChangeNotifierProxyProvider<AudioService, LoopingToolViewModel>(
+          create: (_) => LoopingToolViewModel(),
+          update: (_, audioService, vm) {
+            vm!.audioService = audioService;
+            return vm;
+          },
         ),
       ],
       child: MaterialApp(
