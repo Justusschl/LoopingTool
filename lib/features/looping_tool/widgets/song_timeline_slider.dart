@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/audio_service.dart';
-import '../widgets/custom_timeline.dart';
 import '../viewmodels/looping_tool_viewmodel.dart';
 
 class SongTimelineSlider extends StatelessWidget {

@@ -15,7 +15,7 @@ class LoopingToolHeader extends StatelessWidget {
     final audioService = Provider.of<AudioService>(context);
 
     // Helper to format duration
-    String _formatDuration(Duration? d) {
+    String formatDuration(Duration? d) {
       if (d == null) return '--:--';
       final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
       final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
@@ -23,7 +23,7 @@ class LoopingToolHeader extends StatelessWidget {
     }
 
     // Helper to format file size (if you want to add this logic)
-    String _formatFileSize(int? bytes) {
+    String formatFileSize(int? bytes) {
       if (bytes == null) return '';
       double mb = bytes / (1024 * 1024);
       return '${mb.toStringAsFixed(1)} MB';
@@ -83,7 +83,7 @@ class LoopingToolHeader extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                _formatDuration(audioService.duration),
+                formatDuration(audioService.duration),
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
               const SizedBox(width: 12),

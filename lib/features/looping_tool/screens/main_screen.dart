@@ -7,12 +7,11 @@ import '../widgets/custom_timeline.dart';
 import '../widgets/segment_selector.dart';
 import '../widgets/song_timeline_slider.dart';
 import '../widgets/break_duration_selector.dart';
-import '../widgets/playback_speed_selector.dart';
 import '../../../core/services/audio_service.dart';
 // ... other imports
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  const MainScreen({super.key});
 
   @override
   _MainScreenState createState() => _MainScreenState();
@@ -40,9 +39,10 @@ class _MainScreenState extends State<MainScreen> {
             // Timeline/Segment Selector (use your custom timeline as placeholder)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: CustomTimeline(
+              child: AnimatedCustomTimeline(
                 positionSeconds: audioService.position.inSeconds.toDouble(),
-                totalSeconds: audioService.duration?.inSeconds ?? 0,
+                totalSeconds: (audioService.duration?.inSeconds ?? 0).toDouble(),
+                isPlaying: audioService.isPlaying,
               ),
             ),
             // Add Segment Button and Instruction
@@ -89,10 +89,10 @@ class _MainScreenState extends State<MainScreen> {
                                         addingSegment = true;
                                       });
                                     },
-                                    child: Text('Add Segment', style: TextStyle(color: Colors.white)),
                                     style: OutlinedButton.styleFrom(
                                       side: BorderSide(color: Colors.white),
                                     ),
+                                    child: Text('Add Segment', style: TextStyle(color: Colors.white)),
                                   ),
                                 ],
                               ),

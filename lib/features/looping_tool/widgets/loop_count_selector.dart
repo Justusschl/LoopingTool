@@ -6,11 +6,11 @@ class LoopCountSelector extends StatelessWidget {
   final VoidCallback onDecrement;
 
   const LoopCountSelector({
-    Key? key,
+    super.key,
     required this.loopCount,
     required this.onIncrement,
     required this.onDecrement,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

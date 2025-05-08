@@ -3,12 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'core/services/audio_service.dart';
 import 'features/looping_tool/viewmodels/looping_tool_viewmodel.dart';
-import 'features/looping_tool/screens/looping_tool_screen.dart';
-import 'features/looping_tool/screens/looping_tool_experiment_screen.dart';
 import 'theme/app_colors.dart';
-import 'features/looping_tool/widgets/song_timeline_slider.dart';
-import 'features/looping_tool/widgets/loop_settings_panel.dart';
-import 'features/looping_tool/widgets/segment_selector.dart';
 import 'features/looping_tool/screens/main_screen.dart';
 //import 'features/looping_tool/screens/main_screen.dart';
 

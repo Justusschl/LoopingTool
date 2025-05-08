@@ -6,11 +6,11 @@ class PlaybackSpeedSelector extends StatelessWidget {
   final VoidCallback onIncrement;
 
   const PlaybackSpeedSelector({
-    Key? key,
+    super.key,
     required this.speed,
     required this.onDecrement,
     required this.onIncrement,
-  }) : super(key: key);
+  });
 
   String get displaySpeed {
     if (speed == 1.0) return '1X';

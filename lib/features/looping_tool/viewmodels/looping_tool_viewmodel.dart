@@ -3,6 +3,7 @@ import 'package:looping_tool_mvp/data/models/marker.dart';
 import 'package:looping_tool_mvp/data/models/segment.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:looping_tool_mvp/core/services/audio_service.dart';
+import 'package:just_audio/just_audio.dart';
 
 class LoopingToolViewModel extends ChangeNotifier {
   String? audioFilePath;
@@ -23,13 +24,19 @@ class LoopingToolViewModel extends ChangeNotifier {
 
   late AudioService audioService;
 
-  void setAudioFile(String path) {
+  List<double> waveform = [];
+
+  Future<void> setAudioFile(String path) async {
     audioFilePath = path;
+    waveform = [];
     markers.clear();
     selectedSegment = null;
     startPosition = null;
     endPosition = null;
     _errorMessage = null;
+    
+    await generateWaveform(path);
+    
     notifyListeners();
   }
 
@@ -37,7 +44,7 @@ class LoopingToolViewModel extends ChangeNotifier {
     final result = await FilePicker.platform.pickFiles(type: FileType.audio);
     if (result != null && result.files.single.path != null) {
       final path = result.files.single.path!;
-      setAudioFile(path);
+      await setAudioFile(path);
       return path;
     }
     return null;
@@ -145,6 +152,20 @@ class LoopingToolViewModel extends ChangeNotifier {
 
   void setPreludeEnabled(bool value) {
     _preludeEnabled = value;
+    notifyListeners();
+  }
+
+  Future<void> generateWaveform(String filePath) async {
+    final player = AudioPlayer();
+    await player.setFilePath(filePath);
+    final duration = await player.duration;
+    
+    // Generate a simple waveform (you can adjust the number of points)
+    final waveform = List<double>.generate(100, (index) => 
+      (index % 3 == 0) ? 0.8 : 0.3  // This creates a simple pattern
+    );
+    
+    this.waveform = waveform;
     notifyListeners();
   }
 }

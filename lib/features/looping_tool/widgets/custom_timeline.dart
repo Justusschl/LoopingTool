@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:provider/provider.dart';
+import '../../../core/services/audio_service.dart';
+import '../viewmodels/looping_tool_viewmodel.dart';
 
 class CustomTimeline extends StatelessWidget {
   final double positionSeconds; // current position in seconds
-  final int totalSeconds; // total duration in seconds
-  final int windowSeconds; // how many seconds to show in the viewport
+  final double totalSeconds; // total duration in seconds
+  final double windowSeconds; // how many seconds to show in the viewport
 
   const CustomTimeline({
     super.key,
     required this.positionSeconds,
     required this.totalSeconds,
-    this.windowSeconds = 30,
+    this.windowSeconds = 30.0,
   });
 
   @override
   Widget build(BuildContext context) {
+    final vm = Provider.of<LoopingToolViewModel>(context);
     return SizedBox(
       height: 60,
       child: CustomPaint(
@@ -22,6 +26,7 @@ class CustomTimeline extends StatelessWidget {
           positionSeconds: positionSeconds,
           totalSeconds: totalSeconds,
           windowSeconds: windowSeconds,
+          waveform: vm.waveform,
         ),
         size: Size.infinite,
       ),
@@ -31,86 +36,78 @@ class CustomTimeline extends StatelessWidget {
 
 class TimelinePainter extends CustomPainter {
   final double positionSeconds;
-  final int totalSeconds;
-  final int windowSeconds;
+  final double totalSeconds;
+  final double windowSeconds;
+  final List<double> waveform;
 
   TimelinePainter({
     required this.positionSeconds,
     required this.totalSeconds,
     required this.windowSeconds,
+    required this.waveform,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint tickPaint = Paint()
-      ..color = Colors.white54
-      ..strokeWidth = 2;
+    final paint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 1.0;
 
-    final Paint playheadPaint = Paint()
-      ..color = Colors.red
-      ..strokeWidth = 3;
+    final playheadX = size.width / 2;
+    final secondsPerPixel = windowSeconds / size.width;
 
-    // The playhead is always in the center
-    final double playheadX = size.width / 2;
-
-    // Calculate the visual window (can be negative)
-    double visualWindowStart = positionSeconds - windowSeconds / 2;
-    double visualWindowEnd = positionSeconds + windowSeconds / 2;
-
-    int numTicks = 40; // More ticks for smoother movement
-    double tickInterval = windowSeconds / (numTicks - 1);
-    double tickSpacing = size.width / (numTicks - 1);
-
-    // Calculate the fractional offset for smooth scrolling
-    double fractional = (visualWindowStart / tickInterval) - (visualWindowStart ~/ tickInterval);
-    double pixelOffset = -fractional * tickSpacing;
-
-    const double bigTickHeight = 18;
-    const double smallTickHeight = 10;
-
-    for (int i = 0; i < numTicks; i++) {
-      double t = (visualWindowStart ~/ tickInterval + i) * tickInterval;
-      double x = pixelOffset + i * tickSpacing;
-
-      // Alternate tick heights
-      double tickHeight = (i % 2 == 0) ? bigTickHeight : smallTickHeight;
-
-      // Only draw ticks within the visible window
-      if (x >= 0 && x <= size.width) {
+    // Draw waveform
+    for (int x = 0; x < size.width; x++) {
+      final timeAtX = positionSeconds - windowSeconds / 2 + x * secondsPerPixel;
+      
+      // Get multiple samples for each x position
+      final startSampleIndex = (timeAtX / totalSeconds * waveform.length).round();
+      final endSampleIndex = ((timeAtX + secondsPerPixel) / totalSeconds * waveform.length).round();
+      
+      if (startSampleIndex >= 0 && startSampleIndex < waveform.length) {
+        // Calculate max amplitude for this bin
+        double maxAmplitude = 0.0;
+        // Take every 4th sample to increase density
+        for (int i = startSampleIndex; i < endSampleIndex && i < waveform.length; i += 4) {
+          maxAmplitude = maxAmplitude > waveform[i].abs() ? maxAmplitude : waveform[i].abs();
+        }
+        
+        final barHeight = maxAmplitude * size.height * 0.6;
         canvas.drawLine(
-          Offset(x, size.height - tickHeight),
-          Offset(x, size.height),
-          tickPaint,
+          Offset(x.toDouble(), size.height / 2 - barHeight / 2),
+          Offset(x.toDouble(), size.height / 2 + barHeight / 2),
+          paint,
         );
       }
     }
 
-    // Draw playhead in the center
+    // Draw playhead
     canvas.drawLine(
       Offset(playheadX, 0),
       Offset(playheadX, size.height),
-      playheadPaint,
+      Paint()
+        ..color = Colors.red
+        ..strokeWidth = 2,  // Made playhead slightly thinner too
     );
   }
 
   @override
-  bool shouldRepaint(covariant TimelinePainter oldDelegate) {
-    return positionSeconds != oldDelegate.positionSeconds ||
-        totalSeconds != oldDelegate.totalSeconds ||
-        windowSeconds != oldDelegate.windowSeconds;
+  bool shouldRepaint(TimelinePainter oldDelegate) {
+    return oldDelegate.positionSeconds != positionSeconds ||
+           oldDelegate.waveform != waveform;
   }
 }
 
 class AnimatedTimeline extends StatefulWidget {
   final double positionSeconds; // The current audio position (from your audio player)
-  final int totalSeconds;
-  final int windowSeconds;
+  final double totalSeconds;
+  final double windowSeconds;
 
   const AnimatedTimeline({
     super.key,
     required this.positionSeconds,
     required this.totalSeconds,
-    this.windowSeconds = 30,
+    this.windowSeconds = 30.0,
   });
 
   @override
@@ -179,5 +176,116 @@ class _AnimatedTimelineState extends State<AnimatedTimeline> with SingleTickerPr
       totalSeconds: widget.totalSeconds,
       windowSeconds: widget.windowSeconds,
     );
+  }
+}
+
+class AnimatedCustomTimeline extends StatefulWidget {
+  final double positionSeconds;
+  final double totalSeconds;
+  final double windowSeconds;
+  final bool isPlaying;
+
+  const AnimatedCustomTimeline({
+    super.key,
+    required this.positionSeconds,
+    required this.totalSeconds,
+    this.windowSeconds = 30.0,
+    required this.isPlaying,
+  });
+
+  @override
+  State<AnimatedCustomTimeline> createState() => _AnimatedCustomTimelineState();
+}
+
+class _AnimatedCustomTimelineState extends State<AnimatedCustomTimeline> with SingleTickerProviderStateMixin {
+  late final Ticker _ticker;
+  double _displayedPosition = 0.0;
+  double _lastAudioPosition = 0.0;
+  late DateTime _lastAudioUpdateTime;
+  List<double> waveform = [];
+  String? audioFilePath;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayedPosition = widget.positionSeconds;
+    _lastAudioPosition = widget.positionSeconds;
+    _lastAudioUpdateTime = DateTime.now();
+    _ticker = Ticker(_onTick)..start();
+  }
+
+  void _onTick(Duration elapsed) {
+    final now = DateTime.now();
+    final dt = now.difference(_lastAudioUpdateTime).inMilliseconds / 1000.0;
+    setState(() {
+      if (widget.isPlaying) {
+        _displayedPosition = _lastAudioPosition + dt;
+      } else {
+        _displayedPosition = _lastAudioPosition;
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant AnimatedCustomTimeline oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If the position jumps (e.g., seek), update immediately
+    if ((widget.positionSeconds - _lastAudioPosition).abs() > 0.1 || widget.isPlaying != oldWidget.isPlaying) {
+      _lastAudioPosition = widget.positionSeconds;
+      _lastAudioUpdateTime = DateTime.now();
+      _displayedPosition = widget.positionSeconds;
+    }
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = Provider.of<LoopingToolViewModel>(context);
+    
+    return GestureDetector(
+      onHorizontalDragUpdate: (details) {
+        _handleDrag(details.primaryDelta ?? 0, context);
+      },
+      child: SizedBox(
+        height: 60,
+        child: Stack(
+          children: [
+            CustomPaint(
+              painter: TimelinePainter(
+                positionSeconds: _displayedPosition,
+                totalSeconds: widget.totalSeconds,
+                windowSeconds: widget.windowSeconds,
+                waveform: vm.waveform,
+              ),
+              size: Size.infinite,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleDrag(double delta, BuildContext context) {
+    // The width of the timeline represents windowSeconds
+    // So delta in pixels maps to seconds as:
+    // deltaSeconds = -delta / width * windowSeconds
+    // (negative because dragging right means going back in time)
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final width = box.size.width;
+    final deltaSeconds = -delta / width * widget.windowSeconds;
+
+    // Calculate new position, clamp to [0, totalSeconds]
+    double newPosition = (_displayedPosition + deltaSeconds).clamp(0.0, widget.totalSeconds.toDouble());
+
+    // Seek the audio player
+    // You may need to get AudioService from Provider here:
+    final audioService = Provider.of<AudioService>(context, listen: false);
+    audioService.seek(Duration(seconds: newPosition.round()));
   }
 }

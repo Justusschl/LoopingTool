@@ -6,11 +6,11 @@ class BreakDurationSelector extends StatelessWidget {
   final VoidCallback onDecrement;
 
   const BreakDurationSelector({
-    Key? key,
+    super.key,
     required this.breakSeconds,
     required this.onIncrement,
     required this.onDecrement,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
