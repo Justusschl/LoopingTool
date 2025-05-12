@@ -25,7 +25,7 @@ class CustomTimeline extends StatelessWidget {
     final vm = Provider.of<LoopingToolViewModel>(context);
     if (totalSeconds == 0 || vm.waveform.isEmpty) {
       return SizedBox(
-        height: 90,
+        height: 180,
         child: CustomPaint(
           painter: TimelinePainter(
             positionSeconds: positionSeconds,
@@ -33,13 +33,14 @@ class CustomTimeline extends StatelessWidget {
             windowSeconds: windowSeconds,
             waveform: vm.waveform,
             zoomLevel: zoomLevel,
+            pan: 0.0,
           ),
           size: Size.infinite,
         ),
       );
     }
     return SizedBox(
-      height: 90,
+      height: 180,
       child: CustomPaint(
         painter: TimelinePainter(
           positionSeconds: positionSeconds,
@@ -47,6 +48,7 @@ class CustomTimeline extends StatelessWidget {
           windowSeconds: windowSeconds,
           waveform: vm.waveform,
           zoomLevel: zoomLevel,
+          pan: 0.0,
         ),
         size: Size.infinite,
       ),
@@ -60,6 +62,7 @@ class TimelinePainter extends CustomPainter {
   final double windowSeconds;
   final List<double> waveform;
   final double zoomLevel;
+  final double pan;
 
   TimelinePainter({
     required this.positionSeconds,
@@ -67,6 +70,7 @@ class TimelinePainter extends CustomPainter {
     required this.windowSeconds,
     required this.waveform,
     required this.zoomLevel,
+    required this.pan,
   });
 
   @override
@@ -97,7 +101,7 @@ class TimelinePainter extends CustomPainter {
     for (double t = firstDashTime; t <= maxTime; t += dashInterval) {
       if (t < 0) continue;
       if (t > totalSeconds) continue;
-      double x = centerX + (t - positionSeconds) / secondsPerPixel;
+      double x = centerX + (t - positionSeconds) / secondsPerPixel + pan;
       if (x < 0 || x > size.width) continue;
 
       bool isBig = (t / 1.0).roundToDouble() == t; // every 1s is big
@@ -122,8 +126,7 @@ class TimelinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(TimelinePainter oldDelegate) {
-    return oldDelegate.positionSeconds != positionSeconds ||
-           oldDelegate.waveform != waveform;
+    return oldDelegate.zoomLevel != zoomLevel || oldDelegate.pan != pan || oldDelegate.positionSeconds != positionSeconds;
   }
 }
 
@@ -131,12 +134,14 @@ class AnimatedTimeline extends StatefulWidget {
   final double positionSeconds; // The current audio position (from your audio player)
   final double totalSeconds;
   final double windowSeconds;
+  final bool isPlaying;
 
   const AnimatedTimeline({
     super.key,
     required this.positionSeconds,
     required this.totalSeconds,
     this.windowSeconds = 30.0,
+    required this.isPlaying,
   });
 
   @override
@@ -148,6 +153,7 @@ class _AnimatedTimelineState extends State<AnimatedTimeline> with SingleTickerPr
   double _displayedPosition = 0.0;
   double _lastAudioPosition = 0.0;
   late DateTime _lastUpdateTime;
+  bool _isInteracting = false;
 
   @override
   void initState() {
@@ -159,6 +165,8 @@ class _AnimatedTimelineState extends State<AnimatedTimeline> with SingleTickerPr
   }
 
   void _onTick(Duration elapsed) {
+    if (_isInteracting || !widget.isPlaying) return; // Don't update while user is interacting
+
     final now = DateTime.now();
     final dt = now.difference(_lastUpdateTime).inMilliseconds / 1000.0;
     _lastUpdateTime = now;
@@ -228,55 +236,25 @@ class AnimatedCustomTimeline extends StatefulWidget {
 }
 
 class _AnimatedCustomTimelineState extends State<AnimatedCustomTimeline> with SingleTickerProviderStateMixin {
-  late final Ticker _ticker;
-  double _displayedPosition = 0.0;
-  double _lastAudioPosition = 0.0;
-  late DateTime _lastAudioUpdateTime;
   double _zoomLevel = 1.0;
   double _lastZoomLevel = 1.0;
-  double _minZoom = 0.1;  // Allow zooming out more
-  double _maxZoom = 20.0; // Allow zooming in more
-  double _zoomSensitivity = 2.0;  // More responsive zoom
-  double _baseWindowSeconds = 30.0;  // Base window size
-  double _focalTime = 0.0;
-  Offset? _lastFocalPoint;
+  double _displayedPosition = 0.0;
+  double _lastDisplayedPosition = 0.0;
+  bool _isInteracting = false;
+  late final Ticker _ticker;
 
   @override
   void initState() {
     super.initState();
     _displayedPosition = widget.positionSeconds;
-    _lastAudioPosition = widget.positionSeconds;
-    _lastAudioUpdateTime = DateTime.now();
     _ticker = Ticker(_onTick)..start();
   }
 
   void _onTick(Duration elapsed) {
-    final now = DateTime.now();
-    final dt = now.difference(_lastAudioUpdateTime).inMilliseconds / 1000.0;
-    setState(() {
-      if (widget.isPlaying) {
-        // Use linear interpolation for smoother movement
-        _displayedPosition = _lastAudioPosition + dt;
-        // Add a small buffer to prevent jitter
-        if ((_displayedPosition - widget.positionSeconds).abs() > 0.1) {
-          _displayedPosition = widget.positionSeconds;
-          _lastAudioPosition = widget.positionSeconds;
-          _lastAudioUpdateTime = now;
-        }
-      } else {
-        _displayedPosition = _lastAudioPosition;
-      }
-    });
-  }
-
-  @override
-  void didUpdateWidget(covariant AnimatedCustomTimeline oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // If the position jumps (e.g., seek), update immediately
-    if ((widget.positionSeconds - _lastAudioPosition).abs() > 0.1 || widget.isPlaying != oldWidget.isPlaying) {
-      _lastAudioPosition = widget.positionSeconds;
-      _lastAudioUpdateTime = DateTime.now();
-      _displayedPosition = widget.positionSeconds;
+    if (!_isInteracting) {
+      setState(() {
+        _displayedPosition = widget.positionSeconds;
+      });
     }
   }
 
@@ -289,73 +267,60 @@ class _AnimatedCustomTimelineState extends State<AnimatedCustomTimeline> with Si
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<LoopingToolViewModel>(context);
-    
-    return RepaintBoundary(
+
+    // Calculate pan so that playhead stays centered on _displayedPosition
+    final windowSeconds = 30.0;
+    final size = MediaQuery.of(context).size;
+    final secondsPerPixel = windowSeconds / size.width;
+    final pan = (widget.positionSeconds - _displayedPosition) / secondsPerPixel;
+
+    return Material(
+      color: Colors.transparent,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onHorizontalDragStart: (_) {
+          _isInteracting = true;
+          _lastDisplayedPosition = _displayedPosition;
+        },
         onHorizontalDragUpdate: (details) {
-          _handleDrag(details.primaryDelta ?? 0, context);
-        },
-        onScaleStart: (details) {
-          _lastZoomLevel = _zoomLevel;
-          _lastFocalPoint = details.focalPoint;
-          // Calculate the time at the focal point
-          final box = context.findRenderObject() as RenderBox?;
-          if (box != null) {
-            final localFocal = box.globalToLocal(details.focalPoint);
-            final secondsPerPixel = (_baseWindowSeconds / _zoomLevel) / box.size.width;
-            _focalTime = _displayedPosition + (localFocal.dx - box.size.width / 2) * secondsPerPixel;
-          }
-        },
-        onScaleUpdate: (details) {
-          final box = context.findRenderObject() as RenderBox?;
-          if (box == null) return;
-          final localFocal = box.globalToLocal(details.focalPoint);
-          final newZoom = (_lastZoomLevel * details.scale).clamp(0.2, 10.0);
-          final secondsPerPixel = (_baseWindowSeconds / newZoom) / box.size.width;
-          // Adjust center so focal time stays under finger
-          final newCenter = _focalTime - (localFocal.dx - box.size.width / 2) * secondsPerPixel;
           setState(() {
-            _zoomLevel = newZoom;
-            _displayedPosition = newCenter.clamp(0.0, widget.totalSeconds);
+            _displayedPosition = _lastDisplayedPosition - details.primaryDelta! * secondsPerPixel;
           });
         },
+        onHorizontalDragEnd: (_) {
+          _isInteracting = false;
+          // Seek audio to new position
+          final audioService = Provider.of<AudioService>(context, listen: false);
+          audioService.seek(Duration(seconds: _displayedPosition.round()));
+        },
+        onScaleStart: (details) {
+          _isInteracting = true;
+          _lastDisplayedPosition = _displayedPosition;
+          _lastZoomLevel = _zoomLevel;
+        },
+        onScaleUpdate: (details) {
+          setState(() {
+            _zoomLevel = (_lastZoomLevel * details.scale).clamp(0.5, 10.0);
+          });
+        },
+        onScaleEnd: (details) {
+          _isInteracting = false;
+        },
         child: SizedBox(
-          height: 90,
-          child: Stack(
-            children: [
-              CustomPaint(
-                painter: TimelinePainter(
-                  positionSeconds: _displayedPosition,
-                  totalSeconds: widget.totalSeconds,
-                  windowSeconds: _baseWindowSeconds / _zoomLevel,
-                  waveform: vm.waveform,
-                  zoomLevel: _zoomLevel,
-                ),
-                size: Size.infinite,
-              ),
-            ],
+          height: 180,
+          width: double.infinity,
+          child: CustomPaint(
+            painter: TimelinePainter(
+              positionSeconds: _displayedPosition,
+              totalSeconds: widget.totalSeconds,
+              windowSeconds: windowSeconds,
+              waveform: vm.waveform,
+              zoomLevel: _zoomLevel,
+              pan: pan,
+            ),
           ),
         ),
       ),
     );
-  }
-
-  void _handleDrag(double delta, BuildContext context) {
-    // The width of the timeline represents windowSeconds
-    // So delta in pixels maps to seconds as:
-    // deltaSeconds = -delta / width * windowSeconds
-    // (negative because dragging right means going back in time)
-    final box = context.findRenderObject() as RenderBox?;
-    if (box == null) return;
-    final width = box.size.width;
-    final deltaSeconds = -delta / width * widget.windowSeconds;
-
-    // Calculate new position, clamp to [0, totalSeconds]
-    double newPosition = (_displayedPosition + deltaSeconds).clamp(0.0, widget.totalSeconds.toDouble());
-
-    // Seek the audio player
-    // You may need to get AudioService from Provider here:
-    final audioService = Provider.of<AudioService>(context, listen: false);
-    audioService.seek(Duration(seconds: newPosition.round()));
   }
 }

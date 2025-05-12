@@ -8,6 +8,9 @@ import '../widgets/segment_selector.dart';
 import '../widgets/song_timeline_slider.dart';
 import '../widgets/break_duration_selector.dart';
 import '../../../core/services/audio_service.dart';
+import '../widgets/zooom_test.dart';
+import '../widgets/timeline_zoom_test.dart';
+
 // ... other imports
 
 class MainScreen extends StatefulWidget {
@@ -39,10 +42,22 @@ class _MainScreenState extends State<MainScreen> {
             // Timeline/Segment Selector (use your custom timeline as placeholder)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: AnimatedCustomTimeline(
-                positionSeconds: audioService.position.inSeconds.toDouble(),
-                totalSeconds: (audioService.duration?.inSeconds ?? 0).toDouble(),
-                isPlaying: audioService.isPlaying,
+              child: SizedBox(
+                height: 180,
+                //child: AnimatedCustomTimeline(
+                //  positionSeconds: audioService.position.inSeconds.toDouble(),
+                //  totalSeconds: (audioService.duration?.inSeconds ?? 0).toDouble(),
+                //  isPlaying: audioService.isPlaying,
+                //),
+                child: DAWTimeline(
+                  audioPosition: audioService.position.inSeconds.toDouble(),
+                  totalSeconds: (audioService.duration?.inSeconds ?? 0).toDouble(),
+                  isPlaying: audioService.isPlaying,
+                  waveform: vm.waveform,
+                  onPositionChanged: (newPosition) {
+                    audioService.seek(Duration(seconds: newPosition.round()));
+                  },
+                ),
               ),
             ),
             // Add Segment Button and Instruction
@@ -114,10 +129,13 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                   SizedBox(width: 16),
                   Text('Prelude', style: TextStyle(color: Colors.white)),
-                  Switch(
-                    value: vm.preludeEnabled,
-                    onChanged: (val) => vm.setPreludeEnabled(val),
-                    activeColor: Colors.red,
+                  Transform.scale(
+                    scale: 0.8,
+                    child: Switch(
+                      value: vm.preludeEnabled,
+                      onChanged: (val) => vm.setPreludeEnabled(val),
+                      activeColor: Colors.red,
+                    ),
                   ),
                 ],
               ),

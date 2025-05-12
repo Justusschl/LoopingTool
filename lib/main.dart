@@ -5,6 +5,7 @@ import 'core/services/audio_service.dart';
 import 'features/looping_tool/viewmodels/looping_tool_viewmodel.dart';
 import 'theme/app_colors.dart';
 import 'features/looping_tool/screens/main_screen.dart';
+import 'features/looping_tool/widgets/zooom_test.dart';
 //import 'features/looping_tool/screens/main_screen.dart';
 
 void main() {
@@ -49,6 +50,7 @@ void main() {
         // Switch between your production and experiment screens here:
         // home: LoopingToolScreen(), // <-- Production
         home: MainScreen(),
+        // home: ZoomTest(),
       ),
     ),
   );
