@@ -103,7 +103,7 @@ class _DAWTimelineState extends State<DAWTimeline> with SingleTickerProviderStat
         child: CustomPaint(
           size: Size.infinite,
           painter: TimelinePainter(
-            positionSeconds: _centerPosition + _pan,
+            positionSeconds: widget.audioPosition,
             totalSeconds: widget.totalSeconds,
             windowSeconds: windowSeconds,
             waveform: widget.waveform,

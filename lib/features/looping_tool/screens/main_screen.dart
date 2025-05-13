@@ -115,22 +115,25 @@ class _MainScreenState extends State<MainScreen> {
                           ),
               ),
             ),
+            // Slider Row
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+              child: SongTimelineSlider(),
+            ),
             // Break & Prelude Row
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
               child: Row(
                 children: [
-                  Expanded(
-                    child: BreakDurationSelector(
-                      breakSeconds: vm.breakDuration,
-                      onIncrement: () => vm.setBreakDuration(vm.breakDuration + 1),
-                      onDecrement: () => vm.setBreakDuration(vm.breakDuration > 1 ? vm.breakDuration - 1 : 1),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Text('Prelude', style: TextStyle(color: Colors.white)),
+                  Expanded(child: BreakDurationSelector(
+                    breakSeconds: vm.breakDuration,
+                    onIncrement: () => vm.setBreakDuration(vm.breakDuration + 1),
+                    onDecrement: () => vm.setBreakDuration(vm.breakDuration > 1 ? vm.breakDuration - 1 : 1),
+                  )),
+                  SizedBox(width: 8),
+                  Text('Prelude', style: TextStyle(color: Colors.white, fontSize: 12)),
                   Transform.scale(
-                    scale: 0.8,
+                    scale: 0.7,
                     child: Switch(
                       value: vm.preludeEnabled,
                       onChanged: (val) => vm.setPreludeEnabled(val),
@@ -140,21 +143,16 @@ class _MainScreenState extends State<MainScreen> {
                 ],
               ),
             ),
-            // Main Timeline Slider
+            // Playback Controls Row
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: SongTimelineSlider(),
-            ),
-            // Playback Controls (replace with your actual controls if needed)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  IconButton(icon: Icon(Icons.skip_previous, color: Colors.white, size: 32), onPressed: () {}),
-                  SizedBox(width: 16),
+                  IconButton(icon: Icon(Icons.skip_previous, color: Colors.white, size: 24), onPressed: () {}),
+                  SizedBox(width: 8),
                   CircleAvatar(
-                    radius: 28,
+                    radius: 32,
                     backgroundColor: Colors.white,
                     child: IconButton(
                       icon: Icon(
@@ -171,8 +169,8 @@ class _MainScreenState extends State<MainScreen> {
                       },
                     ),
                   ),
-                  SizedBox(width: 16),
-                  IconButton(icon: Icon(Icons.skip_next, color: Colors.white, size: 32), onPressed: () {}),
+                  SizedBox(width: 8),
+                  IconButton(icon: Icon(Icons.skip_next, color: Colors.white, size: 24), onPressed: () {}),
                 ],
               ),
             ),

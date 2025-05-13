@@ -259,6 +259,16 @@ class _AnimatedCustomTimelineState extends State<AnimatedCustomTimeline> with Si
   }
 
   @override
+  void didUpdateWidget(covariant AnimatedCustomTimeline oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_isInteracting && (widget.positionSeconds - _displayedPosition).abs() > 0.01) {
+      setState(() {
+        _displayedPosition = widget.positionSeconds;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _ticker.dispose();
     super.dispose();
