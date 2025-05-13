@@ -115,34 +115,37 @@ class _MainScreenState extends State<MainScreen> {
                           ),
               ),
             ),
-            // Slider Row
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-              child: SongTimelineSlider(),
-            ),
-            // Break & Prelude Row
+            // Break & Countdown Row
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
               child: Row(
                 children: [
-                  Expanded(child: BreakDurationSelector(
-                    breakSeconds: vm.breakDuration,
-                    onIncrement: () => vm.setBreakDuration(vm.breakDuration + 1),
-                    onDecrement: () => vm.setBreakDuration(vm.breakDuration > 1 ? vm.breakDuration - 1 : 1),
-                  )),
+                  Expanded(
+                    child: BreakDurationSelector(
+                      breakSeconds: vm.breakDuration,
+                      onIncrement: () => vm.setBreakDuration(vm.breakDuration + 1),
+                      onDecrement: () => vm.setBreakDuration(vm.breakDuration > 1 ? vm.breakDuration - 1 : 1),
+                    ),
+                  ),
                   SizedBox(width: 8),
-                  Text('Prelude', style: TextStyle(color: Colors.white, fontSize: 12)),
+                  Text('Countdown', style: TextStyle(color: Colors.white, fontSize: 12)),
                   Transform.scale(
-                    scale: 0.7,
-                    child: Switch(
-                      value: vm.preludeEnabled,
-                      onChanged: (val) => vm.setPreludeEnabled(val),
+                    scale: 0.9,
+                    child: Checkbox(
+                      value: vm.countdownEnabled,
+                      onChanged: (val) => vm.setCountdownEnabled(val ?? false),
                       activeColor: Colors.red,
+                      checkColor: Colors.white,
                     ),
                   ),
                 ],
               ),
             ),
+            // Slider Row
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+              child: SongTimelineSlider(),
+            ), 
             // Playback Controls Row
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),

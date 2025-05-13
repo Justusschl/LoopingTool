@@ -22,6 +22,9 @@ class LoopingToolViewModel extends ChangeNotifier {
   bool _preludeEnabled = false;
   bool get preludeEnabled => _preludeEnabled;
 
+  bool _countdownEnabled = false;
+  bool get countdownEnabled => _countdownEnabled;
+
   late AudioService audioService;
 
   List<double> waveform = [];
@@ -152,6 +155,11 @@ class LoopingToolViewModel extends ChangeNotifier {
 
   void setPreludeEnabled(bool value) {
     _preludeEnabled = value;
+    notifyListeners();
+  }
+
+  void setCountdownEnabled(bool value) {
+    _countdownEnabled = value;
     notifyListeners();
   }
 
