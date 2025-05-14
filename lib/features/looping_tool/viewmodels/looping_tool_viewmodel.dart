@@ -166,7 +166,7 @@ class LoopingToolViewModel extends ChangeNotifier {
   Future<void> generateWaveform(String filePath) async {
     final player = AudioPlayer();
     await player.setFilePath(filePath);
-    final duration = await player.duration;
+    final duration = player.duration;
     
     // Generate a simple waveform (you can adjust the number of points)
     final waveform = List<double>.generate(100, (index) => 

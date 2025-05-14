@@ -31,7 +31,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Row(
           children: [
             DropdownButton<String>(
@@ -79,13 +79,13 @@ class _SegmentSelectorState extends State<SegmentSelector> {
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 28),
         if (vm.selectedSegment != null) ...[
           Text(
             "Selected Segment: ${_formatDuration(vm.selectedSegment!.duration)}",
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 12),
           SizedBox(
             height: 32,
             child: ElevatedButton(
@@ -108,7 +108,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
               child: const Text("Loop Selected Segment"),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

@@ -3,12 +3,10 @@ import 'package:provider/provider.dart';
 // Import your real widgets and viewmodel here
 import '../viewmodels/looping_tool_viewmodel.dart';
 import '../widgets/looping_tool_header.dart';
-import '../widgets/custom_timeline.dart';
 import '../widgets/segment_selector.dart';
 import '../widgets/song_timeline_slider.dart';
 import '../widgets/break_duration_selector.dart';
 import '../../../core/services/audio_service.dart';
-import '../widgets/zooom_test.dart';
 import '../widgets/timeline_zoom_test.dart';
 
 // ... other imports
@@ -41,14 +39,9 @@ class _MainScreenState extends State<MainScreen> {
             ),
             // Timeline/Segment Selector (use your custom timeline as placeholder)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 2),
               child: SizedBox(
-                height: 180,
-                //child: AnimatedCustomTimeline(
-                //  positionSeconds: audioService.position.inSeconds.toDouble(),
-                //  totalSeconds: (audioService.duration?.inSeconds ?? 0).toDouble(),
-                //  isPlaying: audioService.isPlaying,
-                //),
+                height: 120,
                 child: DAWTimeline(
                   audioPosition: audioService.position.inSeconds.toDouble(),
                   totalSeconds: (audioService.duration?.inSeconds ?? 0).toDouble(),
@@ -60,23 +53,18 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
             ),
-            // Add Segment Button and Instruction
+            // Add Segment Button (moved closer to timeline, text removed)
             Center(
-              child: Column(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.add_box_outlined, color: Colors.white, size: 32),
-                    onPressed: () {
-                      final timestamp = audioService.position;
-                      final label = String.fromCharCode(65 + vm.markers.length); // 'A', 'B', etc.
-                      vm.addMarker(label, timestamp);
-                    },
-                  ),
-                  Text(
-                    'Tap on + to add segment. Pinch to zoom.',
-                    style: TextStyle(color: Colors.white54, fontSize: 13),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.only(top: 0, bottom: 4),
+                child: IconButton(
+                  icon: Icon(Icons.add_box_outlined, color: Colors.white, size: 28),
+                  onPressed: () {
+                    final timestamp = audioService.position;
+                    final label = String.fromCharCode(65 + vm.markers.length); // 'A', 'B', etc.
+                    vm.addMarker(label, timestamp);
+                  },
+                ),
               ),
             ),
             // Segment Card or Empty State
@@ -117,17 +105,15 @@ class _MainScreenState extends State<MainScreen> {
             ),
             // Break & Countdown Row
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               child: Row(
                 children: [
-                  Expanded(
-                    child: BreakDurationSelector(
-                      breakSeconds: vm.breakDuration,
-                      onIncrement: () => vm.setBreakDuration(vm.breakDuration + 1),
-                      onDecrement: () => vm.setBreakDuration(vm.breakDuration > 1 ? vm.breakDuration - 1 : 1),
-                    ),
+                  BreakDurationSelector(
+                    breakSeconds: vm.breakDuration,
+                    onIncrement: () => vm.setBreakDuration(vm.breakDuration + 1),
+                    onDecrement: () => vm.setBreakDuration(vm.breakDuration > 1 ? vm.breakDuration - 1 : 1),
                   ),
-                  SizedBox(width: 8),
+                  Spacer(),
                   Text('Countdown', style: TextStyle(color: Colors.white, fontSize: 12)),
                   Transform.scale(
                     scale: 0.9,

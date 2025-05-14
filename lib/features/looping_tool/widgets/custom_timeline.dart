@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/services/audio_service.dart';
 import '../viewmodels/looping_tool_viewmodel.dart';
 import 'dart:math';
+import 'package:looping_tool_mvp/data/models/marker.dart';
 
 
 class CustomTimeline extends StatelessWidget {
@@ -34,6 +35,7 @@ class CustomTimeline extends StatelessWidget {
             waveform: vm.waveform,
             zoomLevel: zoomLevel,
             pan: 0.0,
+            markers: vm.markers,
           ),
           size: Size.infinite,
         ),
@@ -49,6 +51,7 @@ class CustomTimeline extends StatelessWidget {
           waveform: vm.waveform,
           zoomLevel: zoomLevel,
           pan: 0.0,
+          markers: vm.markers,
         ),
         size: Size.infinite,
       ),
@@ -63,6 +66,7 @@ class TimelinePainter extends CustomPainter {
   final List<double> waveform;
   final double zoomLevel;
   final double pan;
+  final List<Marker> markers;
 
   TimelinePainter({
     required this.positionSeconds,
@@ -71,6 +75,7 @@ class TimelinePainter extends CustomPainter {
     required this.waveform,
     required this.zoomLevel,
     required this.pan,
+    required this.markers,
   });
 
   @override
@@ -114,6 +119,30 @@ class TimelinePainter extends CustomPainter {
       );
     }
 
+    // Draw markers
+    final markerPaint = Paint()
+      ..color = Colors.blueAccent
+      ..strokeWidth = 3.0;
+    final textStyle = TextStyle(color: Colors.blueAccent, fontSize: 12, fontWeight: FontWeight.bold);
+    for (final marker in markers) {
+      final markerSec = marker.timestamp.inMilliseconds / 1000.0;
+      if (markerSec < minTime || markerSec > maxTime) continue;
+      final x = centerX + (markerSec - positionSeconds) / secondsPerPixel + pan;
+      if (x < 0 || x > size.width) continue;
+      // Draw marker line
+      canvas.drawLine(
+        Offset(x, 0),
+        Offset(x, size.height),
+        markerPaint,
+      );
+      // Draw marker label offset to the right and below the timeline
+      final textSpan = TextSpan(text: marker.label, style: textStyle);
+      final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr);
+      textPainter.layout(minWidth: 0, maxWidth: 40);
+      // Offset label 8px to the right and 18px below the bottom
+      textPainter.paint(canvas, Offset(x + 8, size.height - textPainter.height + 18));
+    }
+
     // Draw playhead in the center
     canvas.drawLine(
       Offset(centerX, 0),
@@ -126,7 +155,7 @@ class TimelinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(TimelinePainter oldDelegate) {
-    return oldDelegate.zoomLevel != zoomLevel || oldDelegate.pan != pan || oldDelegate.positionSeconds != positionSeconds;
+    return oldDelegate.zoomLevel != zoomLevel || oldDelegate.pan != pan || oldDelegate.positionSeconds != positionSeconds || oldDelegate.markers != markers;
   }
 }
 
@@ -153,7 +182,7 @@ class _AnimatedTimelineState extends State<AnimatedTimeline> with SingleTickerPr
   double _displayedPosition = 0.0;
   double _lastAudioPosition = 0.0;
   late DateTime _lastUpdateTime;
-  bool _isInteracting = false;
+  final bool _isInteracting = false;
 
   @override
   void initState() {
@@ -327,6 +356,7 @@ class _AnimatedCustomTimelineState extends State<AnimatedCustomTimeline> with Si
               waveform: vm.waveform,
               zoomLevel: _zoomLevel,
               pan: pan,
+              markers: vm.markers,
             ),
           ),
         ),

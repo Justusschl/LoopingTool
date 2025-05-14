@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'custom_timeline.dart';
 import 'dart:math';
+import 'package:provider/provider.dart';
+import '../viewmodels/looping_tool_viewmodel.dart';
 
 class DAWTimeline extends StatefulWidget {
   final double audioPosition;
@@ -72,6 +74,7 @@ class _DAWTimelineState extends State<DAWTimeline> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final windowSeconds = _baseWindowSeconds / _zoom;
+    final vm = Provider.of<LoopingToolViewModel>(context);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -109,6 +112,7 @@ class _DAWTimelineState extends State<DAWTimeline> with SingleTickerProviderStat
             waveform: widget.waveform,
             zoomLevel: _zoom,
             pan: 0.0,
+            markers: vm.markers,
           ),
         ),
       ),

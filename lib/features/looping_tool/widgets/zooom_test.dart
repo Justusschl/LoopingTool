@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ZoomTest extends StatefulWidget {
+  const ZoomTest({super.key});
+
   @override
   _ZoomTestState createState() => _ZoomTestState();
 }
