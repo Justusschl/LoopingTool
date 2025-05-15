@@ -30,13 +30,16 @@ class PlaybackSpeedSelector extends StatelessWidget {
           constraints: BoxConstraints(),
         ),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          height: 28,
+          alignment: Alignment.center,
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.white, width: 1.2),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
             displaySpeed,
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,

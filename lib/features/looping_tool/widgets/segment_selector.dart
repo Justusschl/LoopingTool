@@ -17,6 +17,7 @@ class SegmentSelector extends StatefulWidget {
 
 class _SegmentSelectorState extends State<SegmentSelector> {
   late final AudioService audioService;
+  int? expandedIndex; // Track which segment is expanded
 
   @override
   void initState() {
@@ -27,121 +28,170 @@ class _SegmentSelectorState extends State<SegmentSelector> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<LoopingToolViewModel>();
+    final markers = vm.markers;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            DropdownButton<String>(
-              hint: const Text("Start"),
-              value: vm.selectedSegment?.start.label,
-              items: vm.markers
-                  .map((m) => DropdownMenuItem(
-                        value: m.label,
-                        child: Text("${m.label} (${_formatDuration(m.timestamp)})"),
-                      ))
-                  .toList(),
-              onChanged: (label) {
-                if (label != null) {
-                  final endLabel = vm.selectedSegment?.end.label;
-                  if (endLabel != null && endLabel != label) {
-                    vm.selectSegmentByLabels(label, endLabel);
-                  } else {
-                    // If no end selected yet, use the next marker
-                    final currentIndex = vm.markers.indexWhere((m) => m.label == label);
-                    if (currentIndex < vm.markers.length - 1) {
-                      vm.selectSegmentByLabels(label, vm.markers[currentIndex + 1].label);
-                    }
-                  }
-                }
-              },
-            ),
-            const SizedBox(width: 16),
-            DropdownButton<String>(
-              hint: const Text("End"),
-              value: vm.selectedSegment?.end.label,
-              items: vm.markers
-                  .map((m) => DropdownMenuItem(
-                        value: m.label,
-                        child: Text("${m.label} (${_formatDuration(m.timestamp)})"),
-                      ))
-                  .toList(),
-              onChanged: (label) {
-                if (label != null) {
-                  final startLabel = vm.selectedSegment?.start.label;
-                  if (startLabel != null && startLabel != label) {
-                    vm.selectSegmentByLabels(startLabel, label);
-                  }
-                }
-              },
-            ),
-          ],
+    if (markers.length == 0) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Text(
+            'No markers have been added yet!',
+            style: TextStyle(fontSize: 16, color: Colors.white70),
+          ),
         ),
-        const SizedBox(height: 28),
-        if (vm.selectedSegment != null) ...[
-          Text(
-            "Selected Segment: ${_formatDuration(vm.selectedSegment!.duration)}",
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+      );
+    }
+    if (markers.length == 1) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Text(
+            'Add another marker to build segment',
+            style: TextStyle(fontSize: 16, color: Colors.white70),
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 32,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                textStyle: TextStyle(fontSize: 13),
-                minimumSize: Size(0, 32),
+        ),
+      );
+    }
+
+    // Build segments: (A-B), (B-C), ...
+    final segments = <Map<String, dynamic>>[];
+    for (int i = 0; i < markers.length - 1; i++) {
+      segments.add({
+        'start': markers[i],
+        'end': markers[i + 1],
+        'label': '${markers[i].label}-${markers[i + 1].label}',
+      });
+    }
+
+    return Card(
+      color: Colors.grey[900],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: segments.length,
+          itemBuilder: (context, idx) {
+            final seg = segments[idx];
+            final start = seg['start'];
+            final end = seg['end'];
+            final segmentLabel = seg['label'];
+            final segmentStart = _formatDuration(start.timestamp);
+            final segmentEnd = _formatDuration(end.timestamp);
+            final isExpanded = expandedIndex == idx;
+            return AnimatedContainer(
+              duration: Duration(milliseconds: 200),
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              decoration: BoxDecoration(
+                color: isExpanded ? Colors.grey[850] : Colors.grey[900],
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: isExpanded ? Colors.red : Colors.white24, width: isExpanded ? 2 : 1),
               ),
-              onPressed: () {
-                final segment = vm.selectedSegment;
-                if (segment != null) {
-                  widget.audioService.loopSegment(
-                    segment.start.timestamp,
-                    segment.end.timestamp,
-                    vm.loopCount,
-                    vm.breakDuration,
-                  );
-                }
-              },
-              child: const Text("Loop Selected Segment"),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SizedBox(
-                height: 28,
-                child: LoopCountSelector(
-                  loopCount: vm.loopCount,
-                  onIncrement: () {
-                    if (vm.loopCount < 99) vm.setLoopCount(vm.loopCount + 1);
-                  },
-                  onDecrement: () {
-                    if (vm.loopCount > 1) vm.setLoopCount(vm.loopCount - 1);
-                  },
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () {
+                  setState(() {
+                    expandedIndex = isExpanded ? null : idx;
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            segmentLabel,
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            '$segmentStart  -  $segmentEnd',
+                            style: TextStyle(fontSize: 14, color: Colors.white70),
+                          ),
+                          SizedBox(width: 8),
+                          if (isExpanded)
+                            IconButton(
+                              icon: Icon(Icons.play_arrow, color: Colors.white, size: 22),
+                              tooltip: 'Play segment',
+                              onPressed: () {
+                                widget.audioService.loopSegment(
+                                  start.timestamp,
+                                  end.timestamp,
+                                  vm.loopCount,
+                                  vm.breakDuration,
+                                );
+                              },
+                              padding: EdgeInsets.zero,
+                              constraints: BoxConstraints(),
+                            ),
+                          Spacer(),
+                          PopupMenuButton<String>(
+                            icon: Icon(Icons.more_vert, color: Colors.white),
+                            onSelected: (value) {
+                              if (value == 'delete') {
+                                // Remove both markers and segment
+                                vm.removeMarker(start);
+                                vm.removeMarker(end);
+                                setState(() {
+                                  expandedIndex = null;
+                                });
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Text('Delete segment'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      if (isExpanded) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
+                              height: 28,
+                              child: LoopCountSelector(
+                                loopCount: vm.loopCount,
+                                onIncrement: () {
+                                  if (vm.loopCount < 99) vm.setLoopCount(vm.loopCount + 1);
+                                },
+                                onDecrement: () {
+                                  if (vm.loopCount > 1) vm.setLoopCount(vm.loopCount - 1);
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              height: 28,
+                              child: PlaybackSpeedSelector(
+                                speed: vm.playbackSpeed,
+                                onDecrement: () {
+                                  final newSpeed = (vm.playbackSpeed - 0.1).clamp(0.7, 1.2);
+                                  vm.setPlaybackSpeed(newSpeed);
+                                },
+                                onIncrement: () {
+                                  final newSpeed = (vm.playbackSpeed + 0.1).clamp(0.7, 1.2);
+                                  vm.setPlaybackSpeed(newSpeed);
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
-              SizedBox(
-                height: 28,
-                child: PlaybackSpeedSelector(
-                  speed: vm.playbackSpeed,
-                  onDecrement: () {
-                    final newSpeed = (vm.playbackSpeed - 0.1).clamp(0.7, 1.2);
-                    vm.setPlaybackSpeed(newSpeed);
-                  },
-                  onIncrement: () {
-                    final newSpeed = (vm.playbackSpeed + 0.1).clamp(0.7, 1.2);
-                    vm.setPlaybackSpeed(newSpeed);
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
-      ],
+            );
+          },
+        ),
+      ),
     );
   }
 

@@ -71,36 +71,34 @@ class _MainScreenState extends State<MainScreen> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: vm.selectedSegment != null
-                    ? SegmentSelector(audioService: Provider.of(context, listen: false))
-                    : addingSegment
-                        ? SegmentSelector(audioService: Provider.of(context, listen: false))
-                        : Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.white24),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text('No Segments have been added yet!', style: TextStyle(color: Colors.white)),
-                                  SizedBox(height: 12),
-                                  OutlinedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        addingSegment = true;
-                                      });
-                                    },
-                                    style: OutlinedButton.styleFrom(
-                                      side: BorderSide(color: Colors.white),
-                                    ),
-                                    child: Text('Add Segment', style: TextStyle(color: Colors.white)),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                child: Builder(
+                  builder: (context) {
+                    final markerCount = vm.markers.length;
+                    if (markerCount == 0) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white24),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text('No markers have been added yet!', style: TextStyle(color: Colors.white)),
+                        ),
+                      );
+                    } else if (markerCount == 1) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white24),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text('Add another marker to build segment', style: TextStyle(color: Colors.white)),
+                        ),
+                      );
+                    } else {
+                      return SegmentSelector(audioService: Provider.of(context, listen: false));
+                    }
+                  },
+                ),
               ),
             ),
             // Break & Countdown Row
