@@ -5,11 +5,34 @@ import 'dart:math';
 import 'package:provider/provider.dart';
 import '../viewmodels/looping_tool_viewmodel.dart';
 
+/// A widget that provides an interactive timeline visualization for audio playback.
+/// 
+/// This widget implements a Digital Audio Workstation (DAW) style timeline that includes:
+/// - Waveform visualization
+/// - Playhead tracking
+/// - Marker visualization
+/// - Zoom and pan controls
+/// - Real-time position updates during playback
+/// 
+/// The timeline supports:
+/// - Pinch-to-zoom gesture for adjusting the time window
+/// - Pan gesture for moving through the timeline
+/// - Automatic following of playback position
+/// - Marker visualization with labels
 class DAWTimeline extends StatefulWidget {
+  /// Current playback position in seconds
   final double audioPosition;
+
+  /// Total duration of the audio in seconds
   final double totalSeconds;
+
+  /// Whether audio is currently playing
   final bool isPlaying;
+
+  /// Waveform data for visualization
   final List<double> waveform;
+
+  /// Callback when the user changes the position
   final Function(double) onPositionChanged;
 
   const DAWTimeline({
@@ -26,28 +49,45 @@ class DAWTimeline extends StatefulWidget {
 }
 
 class _DAWTimelineState extends State<DAWTimeline> with SingleTickerProviderStateMixin {
+  /// Current zoom level of the timeline
   double _zoom = 1.0;
+
+  /// Current pan offset in seconds
   double _pan = 0.0;
+
+  /// Whether the user is currently interacting with the timeline
   bool _isInteracting = false;
+
+  /// Ticker for smooth animation updates
   late final Ticker _ticker;
+
+  /// Center position of the timeline view
   double _centerPosition = 0.0;
+
+  /// Last recorded pan position for gesture calculations
   double _lastPanX = 0.0;
   
-  // Add constants for better control
+  /// Minimum zoom level allowed
   static const double _minZoom = 0.5;
-  static const double _maxZoom = 3;  // Reduced from 10.0
+
+  /// Maximum zoom level allowed
+  static const double _maxZoom = 3.0;
+
+  /// Base time window shown at zoom level 1.0
   static const double _baseWindowSeconds = 30.0;
 
+  /// Waveform data for visualization
   late List<double> _waveform;
 
   @override
   void initState() {
     super.initState();
-    _waveform = generateRandomWaveform(1000); // or whatever length you want
+    _waveform = generateRandomWaveform(1000);
     _centerPosition = widget.audioPosition;
     _ticker = Ticker(_onTick)..start();
   }
 
+  /// Updates the timeline position during playback
   void _onTick(Duration elapsed) {
     if (!_isInteracting && widget.isPlaying) {
       setState(() {
@@ -58,6 +98,7 @@ class _DAWTimelineState extends State<DAWTimeline> with SingleTickerProviderStat
     }
   }
 
+  /// Updates the playback position with bounds checking
   void _updatePosition(double newPosition) {
     // Clamp position to valid range
     final clampedPosition = newPosition.clamp(0.0, widget.totalSeconds);
@@ -120,7 +161,9 @@ class _DAWTimelineState extends State<DAWTimeline> with SingleTickerProviderStat
   }
 }
 
-// Example: 1000 random samples between 0.2 and 1.0
+/// Generates a random waveform for testing purposes
+/// 
+/// Returns a list of random values between 0.2 and 1.0
 List<double> generateRandomWaveform(int length) {
   final random = Random();
   return List.generate(length, (_) => 0.2 + random.nextDouble() * 0.8);

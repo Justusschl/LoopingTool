@@ -5,30 +5,74 @@ import 'package:file_picker/file_picker.dart';
 import 'package:looping_tool_mvp/core/services/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 
+/// The central ViewModel for the Looping Tool application.
+/// 
+/// This ViewModel manages all state for the application, including:
+/// - Audio file management and playback
+/// - Marker creation and management
+/// - Segment selection and validation
+/// - Playback settings (speed, loop count, break duration)
+/// - Error handling
+/// - UI state (prelude, countdown)
 class LoopingToolViewModel extends ChangeNotifier {
+  // Audio File Management
+  /// The path to the currently loaded audio file
   String? audioFilePath;
+  
+  /// The waveform data for the current audio file
+  /// Used for visual representation of the audio
+  List<double> waveform = [];
+
+  // Playback Settings
+  /// The current playback speed multiplier (1.0 = normal speed)
   double _playbackSpeed = 1.0;
   double get playbackSpeed => _playbackSpeed;
+
+  /// Number of times the selected segment should loop
   int loopCount = 1;
+
+  /// Duration of break between loops in seconds
   int breakDuration = 0;
 
+  // Marker and Segment Management
+  /// List of all markers in the audio file
+  /// Each marker represents a specific point in time with a label
   List<Marker> markers = [];
+
+  /// The currently selected segment, defined by start and end markers
   Segment? selectedSegment;
+
+  /// The current playback position in the audio file
   Duration? startPosition;
   Duration? endPosition;
+
+  // Error Handling
+  /// The current error message, if any
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  // UI State
+  /// Whether the prelude feature is enabled
   bool _preludeEnabled = false;
   bool get preludeEnabled => _preludeEnabled;
 
+  /// Whether the countdown feature is enabled
   bool _countdownEnabled = false;
   bool get countdownEnabled => _countdownEnabled;
 
+  /// Reference to the audio service for playback control
   late AudioService audioService;
 
-  List<double> waveform = [];
-
+  /// Sets a new audio file and resets all related state
+  /// 
+  /// This method:
+  /// - Updates the audio file path
+  /// - Clears the waveform
+  /// - Resets markers
+  /// - Clears selected segment
+  /// - Resets playback positions
+  /// - Clears any error messages
+  /// - Generates new waveform data
   Future<void> setAudioFile(String path) async {
     audioFilePath = path;
     waveform = [];
@@ -43,6 +87,8 @@ class LoopingToolViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Opens a file picker to select an audio file
+  /// Returns the selected file path or null if cancelled
   Future<String?> pickAudioFile() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.audio);
     if (result != null && result.files.single.path != null) {
@@ -53,22 +99,32 @@ class LoopingToolViewModel extends ChangeNotifier {
     return null;
   }
 
+  /// Updates the playback speed and notifies the audio service
   void setPlaybackSpeed(double speed) {
     _playbackSpeed = speed;
     audioService.setPlaybackSpeed(speed);
     notifyListeners();
   }
 
+  /// Updates the number of times the segment should loop
   void setLoopCount(int count) {
     loopCount = count;
     notifyListeners();
   }
 
+  /// Updates the break duration between loops
   void setBreakDuration(int seconds) {
     breakDuration = seconds;
     notifyListeners();
   }
 
+  /// Adds a new marker at the specified timestamp
+  /// 
+  /// Validates that:
+  /// - No marker exists within 100ms of the specified position
+  /// - The label is not empty
+  /// 
+  /// Sets an error message if validation fails
   void addMarker(String label, Duration timestamp) {
     // Check if marker already exists at this position
     final existingMarker = markers.firstWhere(
@@ -87,6 +143,14 @@ class LoopingToolViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Selects a segment based on start and end marker labels
+  /// 
+  /// Validates that:
+  /// - Both markers exist
+  /// - End marker is after start marker
+  /// - Segment is at least 100ms long
+  /// 
+  /// Sets an error message if validation fails
   void selectSegmentByLabels(String startLabel, String endLabel) {
     _errorMessage = null;
     
@@ -128,21 +192,28 @@ class LoopingToolViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Updates the start position of playback
   void setStartPosition(Duration? pos) {
     startPosition = pos;
     notifyListeners();
   }
 
+  /// Updates the end position of playback
   void setEndPosition(Duration? pos) {
     endPosition = pos;
     notifyListeners();
   }
 
+  /// Clears any current error message
   void clearError() {
     _errorMessage = null;
     notifyListeners();
   }
 
+  /// Removes a marker and updates related state
+  /// 
+  /// If the removed marker was part of the selected segment,
+  /// the segment selection is cleared
   void removeMarker(Marker marker) {
     markers.remove(marker);
     // If the removed marker was part of the selected segment, clear the selection
@@ -153,16 +224,22 @@ class LoopingToolViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Toggles the prelude feature
   void setPreludeEnabled(bool value) {
     _preludeEnabled = value;
     notifyListeners();
   }
 
+  /// Toggles the countdown feature
   void setCountdownEnabled(bool value) {
     _countdownEnabled = value;
     notifyListeners();
   }
 
+  /// Generates a simple waveform visualization for the current audio file
+  /// 
+  /// Currently generates a basic pattern for demonstration purposes
+  /// TODO: Implement actual waveform generation from audio data
   Future<void> generateWaveform(String filePath) async {
     final player = AudioPlayer();
     await player.setFilePath(filePath);
@@ -177,3 +254,36 @@ class LoopingToolViewModel extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+//┌─────────────────────────────────────────────────────────────────┐
+//│                        MainScreen (UI Layer)                     │
+//│                                                                 │
+//│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+//│  │   Header    │  │  Timeline   │  │  Segment    │             │
+//│  │   Widget    │  │   Widget    │  │  Selector   │             │
+//│  └─────────────┘  └─────────────┘  └─────────────┘             │
+//│                                                                 │
+//└───────────────────────────┬─────────────────────────────────────┘
+//                            │
+//                            ▼
+//┌─────────────────────────────────────────────────────────────────┐
+//│                    LoopingToolViewModel                          │
+//│  (State Management & Business Logic)                            │
+//│                                                                 │
+//│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────┐  │
+//│  │  Audio File     │    │  Marker &       │    │  Playback   │  │
+//│  │  Management     │    │  Segment        │    │  Settings   │  │
+//│  └────────┬────────┘    └────────┬────────┘    └──────┬──────┘  │
+//│           │                      │                     │         │
+//└───────────┼──────────────────────┼─────────────────────┼─────────┘
+//            │                      │                     │
+//            ▼                      ▼                     ▼
+//┌─────────────────────────────────────────────────────────────────┐
+//│                        AudioService                             │
+//│  (Audio Playback & Looping Logic)                               │
+//│                                                                 │
+//│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────┐  │
+//│  │  Main Player    │    │  Loop Player    │    │  Position   │  │
+//│  │  (Active)       │    │  (Legacy)       │    │  Tracking   │  │
+//│  └─────────────────┘    └─────────────────┘    └─────────────┘  │
+//└─────────────────────────────────────────────────────────────────┘

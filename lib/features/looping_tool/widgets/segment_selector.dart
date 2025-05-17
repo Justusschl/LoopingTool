@@ -6,7 +6,23 @@ import '../../../core/services/audio_service.dart';
 import 'loop_count_selector.dart';
 import 'playback_speed_selector.dart';
 
+/// A widget that displays and manages segments between markers.
+/// 
+/// This widget provides:
+/// - A list of segments created from consecutive markers
+/// - Expandable segment cards with detailed controls
+/// - Segment playback controls
+/// - Loop count and playback speed settings
+/// - Segment deletion functionality
+/// 
+/// Each segment card shows:
+/// - Segment label (e.g., "A-B")
+/// - Start and end timestamps
+/// - Play button (when expanded)
+/// - Loop count controls
+/// - Playback speed controls
 class SegmentSelector extends StatefulWidget {
+  /// The audio service instance for playback control
   final AudioService audioService;
 
   const SegmentSelector({super.key, required this.audioService});
@@ -16,8 +32,12 @@ class SegmentSelector extends StatefulWidget {
 }
 
 class _SegmentSelectorState extends State<SegmentSelector> {
+  /// Reference to the audio service
   late final AudioService audioService;
-  int? expandedIndex; // Track which segment is expanded
+
+  /// Index of the currently expanded segment card
+  /// null if no segment is expanded
+  int? expandedIndex;
 
   @override
   void initState() {
@@ -30,6 +50,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
     final vm = context.watch<LoopingToolViewModel>();
     final markers = vm.markers;
 
+    // Show appropriate message based on marker count
     if (markers.length == 0) {
       return Padding(
         padding: const EdgeInsets.all(16.0),
@@ -53,7 +74,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
       );
     }
 
-    // Build segments: (A-B), (B-C), ...
+    // Create segments from consecutive markers
     final segments = <Map<String, dynamic>>[];
     for (int i = 0; i < markers.length - 1; i++) {
       segments.add({
@@ -81,6 +102,8 @@ class _SegmentSelectorState extends State<SegmentSelector> {
             final segmentStart = _formatDuration(start.timestamp);
             final segmentEnd = _formatDuration(end.timestamp);
             final isExpanded = expandedIndex == idx;
+
+            // Build expandable segment card
             return AnimatedContainer(
               duration: Duration(milliseconds: 200),
               margin: const EdgeInsets.symmetric(vertical: 4),
@@ -101,6 +124,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Segment header row
                       Row(
                         children: [
                           Text(
@@ -113,6 +137,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
                             style: TextStyle(fontSize: 14, color: Colors.white70),
                           ),
                           SizedBox(width: 8),
+                          // Play button (only shown when expanded)
                           if (isExpanded)
                             IconButton(
                               icon: Icon(Icons.play_arrow, color: Colors.white, size: 22),
@@ -129,6 +154,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
                               constraints: BoxConstraints(),
                             ),
                           Spacer(),
+                          // Segment options menu
                           PopupMenuButton<String>(
                             icon: Icon(Icons.more_vert, color: Colors.white),
                             onSelected: (value) {
@@ -150,11 +176,13 @@ class _SegmentSelectorState extends State<SegmentSelector> {
                           ),
                         ],
                       ),
+                      // Expanded controls
                       if (isExpanded) ...[
                         const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+                            // Loop count controls
                             SizedBox(
                               height: 28,
                               child: LoopCountSelector(
@@ -167,6 +195,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
                                 },
                               ),
                             ),
+                            // Playback speed controls
                             SizedBox(
                               height: 28,
                               child: PlaybackSpeedSelector(
@@ -195,6 +224,12 @@ class _SegmentSelectorState extends State<SegmentSelector> {
     );
   }
 
+  /// Formats a Duration into a MM:SS.mmm string
+  /// 
+  /// Returns a string in the format "MM:SS.mmm" where:
+  /// - MM: minutes (padded with leading zero)
+  /// - SS: seconds (padded with leading zero)
+  /// - mmm: milliseconds (padded with leading zeros)
   String _formatDuration(Duration d) {
     final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');

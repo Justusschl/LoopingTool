@@ -9,8 +9,23 @@ import '../widgets/break_duration_selector.dart';
 import '../../../core/services/audio_service.dart';
 import '../widgets/timeline_zoom_test.dart';
 
-// ... other imports
-
+/// The main screen of the Looping Tool application.
+/// 
+/// This screen serves as the primary interface for the application, providing:
+/// - Audio file selection and playback controls
+/// - Timeline visualization with waveform
+/// - Marker management
+/// - Segment selection and configuration
+/// - Break duration controls
+/// - Countdown toggle
+/// 
+/// The screen is organized in a vertical layout with:
+/// 1. Header (navigation and file info)
+/// 2. Timeline visualization
+/// 3. Marker addition button
+/// 4. Segment management area
+/// 5. Break duration and countdown controls
+/// 6. Playback controls
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -19,10 +34,12 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  /// Tracks whether a new segment is being added
   bool addingSegment = false;
 
   @override
   Widget build(BuildContext context) {
+    // Get access to the view model and audio service
     final vm = Provider.of<LoopingToolViewModel>(context);
     final audioService = Provider.of<AudioService>(context);
 
@@ -32,12 +49,12 @@ class _MainScreenState extends State<MainScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header: back, title, save, audio info, edit/play toggle
+            // Header section with navigation and file info
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: LoopingToolHeader(),
             ),
-            // Timeline/Segment Selector (use your custom timeline as placeholder)
+            // Timeline visualization with waveform
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 2),
               child: SizedBox(
@@ -53,7 +70,7 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
             ),
-            // Add Segment Button (moved closer to timeline, text removed)
+            // Marker addition button
             Center(
               child: Padding(
                 padding: const EdgeInsets.only(top: 0, bottom: 4),
@@ -67,13 +84,14 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
             ),
-            // Segment Card or Empty State
+            // Segment management area
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Builder(
                   builder: (context) {
                     final markerCount = vm.markers.length;
+                    // Show different UI based on number of markers
                     if (markerCount == 0) {
                       return Container(
                         decoration: BoxDecoration(
@@ -101,7 +119,7 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
             ),
-            // Break & Countdown Row
+            // Break duration and countdown controls
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               child: Row(
@@ -125,12 +143,12 @@ class _MainScreenState extends State<MainScreen> {
                 ],
               ),
             ),
-            // Slider Row
+            // Timeline slider for fine position control
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
               child: SongTimelineSlider(),
             ), 
-            // Playback Controls Row
+            // Playback controls (previous, play/pause, next)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(

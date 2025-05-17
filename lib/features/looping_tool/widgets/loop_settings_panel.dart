@@ -5,6 +5,15 @@ import 'loop_count_selector.dart';
 import 'break_duration_selector.dart';
 import 'playback_speed_selector.dart';
 
+/// A widget that provides a panel for configuring loop-related settings.
+/// 
+/// This panel combines multiple controls for segment playback configuration:
+/// - Loop count selection (how many times to repeat)
+/// - Playback speed adjustment (0.7x to 1.2x)
+/// - Break duration setting (pause between loops)
+/// 
+/// The panel integrates with the LoopingToolViewModel to manage global
+/// settings and maintains local state for break duration.
 class LoopSettingsPanel extends StatefulWidget {
   const LoopSettingsPanel({super.key});
 
@@ -13,7 +22,12 @@ class LoopSettingsPanel extends StatefulWidget {
 }
 
 class _LoopSettingsPanelState extends State<LoopSettingsPanel> {
+  /// The duration of the break between loops in seconds
+  /// Initialized to 5 seconds
   int breakSeconds = 5;
+
+  /// The current playback speed multiplier
+  /// Initialized to 1.0 (normal speed)
   double playbackSpeed = 1.0;
 
   @override
@@ -23,9 +37,11 @@ class _LoopSettingsPanelState extends State<LoopSettingsPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Top row with loop count and playback speed controls
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // Loop count selector with bounds checking
             LoopCountSelector(
               loopCount: vm.loopCount,
               onIncrement: () {
@@ -35,6 +51,7 @@ class _LoopSettingsPanelState extends State<LoopSettingsPanel> {
                 if (vm.loopCount > 1) vm.setLoopCount(vm.loopCount - 1);
               },
             ),
+            // Playback speed selector with bounds checking
             PlaybackSpeedSelector(
               speed: vm.playbackSpeed,
               onDecrement: () {
@@ -49,6 +66,7 @@ class _LoopSettingsPanelState extends State<LoopSettingsPanel> {
           ],
         ),
         const SizedBox(height: 10),
+        // Break duration selector with local state management
         BreakDurationSelector(
           breakSeconds: breakSeconds,
           onIncrement: () {

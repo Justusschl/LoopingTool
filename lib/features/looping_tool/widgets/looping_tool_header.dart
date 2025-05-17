@@ -6,6 +6,18 @@ import '../../../core/services/audio_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:marquee/marquee.dart';
 
+/// The header widget for the Looping Tool application.
+/// 
+/// This widget provides:
+/// - Navigation controls (back button)
+/// - Session title
+/// - Save functionality
+/// - Audio file information display
+/// - File upload/change controls
+/// 
+/// The header is organized in two rows:
+/// 1. Top row: Navigation and session controls
+/// 2. Bottom row: Audio file information and management
 class LoopingToolHeader extends StatelessWidget {
   const LoopingToolHeader({super.key});
 
@@ -14,7 +26,9 @@ class LoopingToolHeader extends StatelessWidget {
     final vm = Provider.of<LoopingToolViewModel>(context);
     final audioService = Provider.of<AudioService>(context);
 
-    // Helper to format duration
+    /// Formats a Duration object into a MM:SS string
+    /// 
+    /// Returns '--:--' if duration is null
     String formatDuration(Duration? d) {
       if (d == null) return '--:--';
       final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
@@ -22,7 +36,10 @@ class LoopingToolHeader extends StatelessWidget {
       return '$minutes:$seconds';
     }
 
-    // Helper to format file size (if you want to add this logic)
+    /// Formats file size in bytes to a human-readable string
+    /// 
+    /// Converts bytes to MB with one decimal place
+    /// Returns empty string if bytes is null
     String formatFileSize(int? bytes) {
       if (bytes == null) return '';
       double mb = bytes / (1024 * 1024);
@@ -32,7 +49,7 @@ class LoopingToolHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Top row: back, title, save
+        // Top row: Navigation and session controls
         Row(
           children: [
             Icon(Icons.arrow_back, color: AppColors.textPrimary),
@@ -60,10 +77,11 @@ class LoopingToolHeader extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        // Audio file info row and upload/change button
+        // Bottom row: Audio file information and management
         Row(
           children: [
             if (vm.audioFilePath != null) ...[
+              // Scrolling filename display
               SizedBox(
                 width: 140, // Adjust width as needed for your layout
                 height: 20,
@@ -82,19 +100,20 @@ class LoopingToolHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
+              // Audio duration display
               Text(
                 formatDuration(audioService.duration),
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
               const SizedBox(width: 12),
-              // You can add file size logic here if you want
-              // For now, just show placeholder
+              // File size display (currently hardcoded)
               Text(
                 '2.5 MB',
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
             ],
             Spacer(),
+            // File upload/change button
             TextButton(
               onPressed: () async {
                 final result = await FilePicker.platform.pickFiles(type: FileType.audio);

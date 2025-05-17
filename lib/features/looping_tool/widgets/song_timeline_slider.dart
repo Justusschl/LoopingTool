@@ -3,6 +3,23 @@ import 'package:provider/provider.dart';
 import '../../../core/services/audio_service.dart';
 import '../viewmodels/looping_tool_viewmodel.dart';
 
+/// A widget that displays a timeline slider for audio playback with marker visualization.
+/// 
+/// This widget provides:
+/// - A slider for controlling audio playback position
+/// - Visual representation of markers along the timeline
+/// - Empty state when no audio is loaded
+/// - Consistent height and layout across all states
+/// 
+/// The timeline slider integrates with:
+/// - AudioService for playback control and position tracking
+/// - LoopingToolViewModel for marker data
+/// 
+/// Features:
+/// - Real-time position updates during playback
+/// - Interactive seeking through the audio
+/// - Visual markers showing segment boundaries
+/// - Responsive layout that maintains consistent height
 class SongTimelineSlider extends StatelessWidget {
   const SongTimelineSlider({super.key});
 
@@ -56,6 +73,7 @@ class SongTimelineSlider extends StatelessWidget {
                     const markerWidth = 3.0;
                     return Stack(
                       children: markers.map((marker) {
+                        // Calculate marker position based on timestamp ratio
                         final markerRatio = marker.timestamp.inMilliseconds / duration.inMilliseconds;
                         final left = (markerRatio * trackWidth) - (markerWidth / 2) + 7;
                         return Positioned(
@@ -81,6 +99,11 @@ class SongTimelineSlider extends StatelessWidget {
     );
   }
 
+  /// Formats a Duration into a MM:SS string
+  /// 
+  /// Returns a string in the format "MM:SS" where:
+  /// - MM: minutes (padded with leading zero)
+  /// - SS: seconds (padded with leading zero)
   String _format(Duration d) {
     final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
