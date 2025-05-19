@@ -51,9 +51,9 @@ class _SegmentSelectorState extends State<SegmentSelector> {
     final markers = vm.markers;
 
     // Show appropriate message based on marker count
-    if (markers.length == 0) {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
+    if (markers.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
         child: Center(
           child: Text(
             'No markers have been added yet!',
@@ -63,8 +63,8 @@ class _SegmentSelectorState extends State<SegmentSelector> {
       );
     }
     if (markers.length == 1) {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
         child: Center(
           child: Text(
             'Add another marker to build segment',
@@ -92,7 +92,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
         padding: const EdgeInsets.all(8.0),
         child: ListView.builder(
           shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: segments.length,
           itemBuilder: (context, idx) {
             final seg = segments[idx];
@@ -105,7 +105,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
 
             // Build expandable segment card
             return AnimatedContainer(
-              duration: Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.symmetric(vertical: 4),
               decoration: BoxDecoration(
                 color: isExpanded ? Colors.grey[850] : Colors.grey[900],
@@ -129,18 +129,18 @@ class _SegmentSelectorState extends State<SegmentSelector> {
                         children: [
                           Text(
                             segmentLabel,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(
                             '$segmentStart  -  $segmentEnd',
-                            style: TextStyle(fontSize: 14, color: Colors.white70),
+                            style: const TextStyle(fontSize: 14, color: Colors.white70),
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           // Play button (only shown when expanded)
                           if (isExpanded)
                             IconButton(
-                              icon: Icon(Icons.play_arrow, color: Colors.white, size: 22),
+                              icon: const Icon(Icons.play_arrow, color: Colors.white, size: 22),
                               tooltip: 'Play segment',
                               onPressed: () {
                                 widget.audioService.loopSegment(
@@ -151,12 +151,12 @@ class _SegmentSelectorState extends State<SegmentSelector> {
                                 );
                               },
                               padding: EdgeInsets.zero,
-                              constraints: BoxConstraints(),
+                              constraints: const BoxConstraints(),
                             ),
-                          Spacer(),
+                          const Spacer(),
                           // Segment options menu
                           PopupMenuButton<String>(
-                            icon: Icon(Icons.more_vert, color: Colors.white),
+                            icon: const Icon(Icons.more_vert, color: Colors.white),
                             onSelected: (value) {
                               if (value == 'delete') {
                                 // Remove both markers and segment
@@ -168,7 +168,7 @@ class _SegmentSelectorState extends State<SegmentSelector> {
                               }
                             },
                             itemBuilder: (context) => [
-                              PopupMenuItem(
+                              const PopupMenuItem(
                                 value: 'delete',
                                 child: Text('Delete segment'),
                               ),

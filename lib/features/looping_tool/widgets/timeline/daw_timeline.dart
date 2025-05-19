@@ -1,24 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'custom_timeline.dart';
 import 'dart:math';
 import 'package:provider/provider.dart';
-import '../viewmodels/looping_tool_viewmodel.dart';
+import 'package:looping_tool_mvp/features/looping_tool/viewmodels/looping_tool_viewmodel.dart';
+import 'timeline_painter.dart';
+import 'timeline_constants.dart';
 
-/// A widget that provides an interactive timeline visualization for audio playback.
+/// The main interactive timeline component for audio playback visualization.
 /// 
-/// This widget implements a Digital Audio Workstation (DAW) style timeline that includes:
-/// - Waveform visualization
-/// - Playhead tracking
-/// - Marker visualization
-/// - Zoom and pan controls
-/// - Real-time position updates during playback
+/// This widget implements a Digital Audio Workstation (DAW) style timeline that
+/// provides a rich, interactive interface for audio navigation and visualization.
+/// It combines gesture handling, playback tracking, and visual feedback to create
+/// a professional-grade timeline experience.
 /// 
-/// The timeline supports:
-/// - Pinch-to-zoom gesture for adjusting the time window
-/// - Pan gesture for moving through the timeline
-/// - Automatic following of playback position
+/// Core Features:
+/// - Real-time waveform visualization
+/// - Interactive playhead tracking
+/// - Marker visualization and management
+/// - Intuitive zoom and pan controls
+/// - Smooth playback position updates
+/// 
+/// Interaction Model:
+/// - Pinch gestures for zooming the timeline view
+/// - Pan gestures for navigating through the timeline
+/// - Automatic playhead following during playback
 /// - Marker visualization with labels
+/// - Position seeking through direct interaction
 class DAWTimeline extends StatefulWidget {
   /// Current playback position in seconds
   final double audioPosition;
@@ -66,28 +73,19 @@ class _DAWTimelineState extends State<DAWTimeline> with SingleTickerProviderStat
 
   /// Last recorded pan position for gesture calculations
   double _lastPanX = 0.0;
-  
-  /// Minimum zoom level allowed
-  static const double _minZoom = 0.5;
-
-  /// Maximum zoom level allowed
-  static const double _maxZoom = 3.0;
-
-  /// Base time window shown at zoom level 1.0
-  static const double _baseWindowSeconds = 30.0;
-
-  /// Waveform data for visualization
-  late List<double> _waveform;
 
   @override
   void initState() {
     super.initState();
-    _waveform = generateRandomWaveform(1000);
     _centerPosition = widget.audioPosition;
     _ticker = Ticker(_onTick)..start();
   }
 
   /// Updates the timeline position during playback
+  /// 
+  /// This method is called by the ticker to update the timeline position
+  /// during playback. It ensures smooth following of the playhead when
+  /// not being interacted with by the user.
   void _onTick(Duration elapsed) {
     if (!_isInteracting && widget.isPlaying) {
       setState(() {
@@ -99,6 +97,9 @@ class _DAWTimelineState extends State<DAWTimeline> with SingleTickerProviderStat
   }
 
   /// Updates the playback position with bounds checking
+  /// 
+  /// Ensures the new position is within valid bounds (0 to total duration)
+  /// before notifying the parent widget of the position change.
   void _updatePosition(double newPosition) {
     // Clamp position to valid range
     final clampedPosition = newPosition.clamp(0.0, widget.totalSeconds);
@@ -114,7 +115,7 @@ class _DAWTimelineState extends State<DAWTimeline> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final windowSeconds = _baseWindowSeconds / _zoom;
+    final windowSeconds = TimelineConstants.baseWindowSeconds / _zoom;
     final vm = Provider.of<LoopingToolViewModel>(context);
 
     return GestureDetector(
@@ -127,7 +128,10 @@ class _DAWTimelineState extends State<DAWTimeline> with SingleTickerProviderStat
         setState(() {
           if (details.pointerCount == 2) {
             // Handle zoom with stricter limits
-            _zoom = (_zoom * details.scale).clamp(_minZoom, _maxZoom);
+            _zoom = (_zoom * details.scale).clamp(
+              TimelineConstants.minZoom,
+              TimelineConstants.maxZoom
+            );
           } else {
             // Handle pan with more stable calculation
             final deltaX = details.focalPoint.dx - _lastPanX;
@@ -143,7 +147,7 @@ class _DAWTimelineState extends State<DAWTimeline> with SingleTickerProviderStat
       },
       child: SizedBox(
         width: screenWidth,
-        height: 180,
+        height: TimelineConstants.timelineHeight,
         child: CustomPaint(
           size: Size.infinite,
           painter: TimelinePainter(

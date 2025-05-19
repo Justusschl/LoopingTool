@@ -7,7 +7,7 @@ import '../widgets/segment_selector.dart';
 import '../widgets/song_timeline_slider.dart';
 import '../widgets/break_duration_selector.dart';
 import '../../../core/services/audio_service.dart';
-import '../widgets/timeline_zoom_test.dart';
+import '../widgets/timeline/daw_timeline.dart';
 
 /// The main screen of the Looping Tool application.
 /// 
@@ -75,7 +75,7 @@ class _MainScreenState extends State<MainScreen> {
               child: Padding(
                 padding: const EdgeInsets.only(top: 0, bottom: 4),
                 child: IconButton(
-                  icon: Icon(Icons.add_box_outlined, color: Colors.white, size: 28),
+                  icon: const Icon(Icons.add_box_outlined, color: Colors.white, size: 28),
                   onPressed: () {
                     final timestamp = audioService.position;
                     final label = String.fromCharCode(65 + vm.markers.length); // 'A', 'B', etc.
@@ -98,7 +98,7 @@ class _MainScreenState extends State<MainScreen> {
                           border: Border.all(color: Colors.white24),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Center(
+                        child: const Center(
                           child: Text('No markers have been added yet!', style: TextStyle(color: Colors.white)),
                         ),
                       );
@@ -108,7 +108,7 @@ class _MainScreenState extends State<MainScreen> {
                           border: Border.all(color: Colors.white24),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Center(
+                        child: const Center(
                           child: Text('Add another marker to build segment', style: TextStyle(color: Colors.white)),
                         ),
                       );
@@ -129,8 +129,8 @@ class _MainScreenState extends State<MainScreen> {
                     onIncrement: () => vm.setBreakDuration(vm.breakDuration + 1),
                     onDecrement: () => vm.setBreakDuration(vm.breakDuration > 1 ? vm.breakDuration - 1 : 1),
                   ),
-                  Spacer(),
-                  Text('Countdown', style: TextStyle(color: Colors.white, fontSize: 12)),
+                  const Spacer(),
+                  const Text('Countdown', style: TextStyle(color: Colors.white, fontSize: 12)),
                   Transform.scale(
                     scale: 0.9,
                     child: Checkbox(
@@ -144,8 +144,8 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
             // Timeline slider for fine position control
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 2),
               child: SongTimelineSlider(),
             ), 
             // Playback controls (previous, play/pause, next)
@@ -154,8 +154,8 @@ class _MainScreenState extends State<MainScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  IconButton(icon: Icon(Icons.skip_previous, color: Colors.white, size: 24), onPressed: () {}),
-                  SizedBox(width: 8),
+                  IconButton(icon: const Icon(Icons.skip_previous, color: Colors.white, size: 24), onPressed: () {}),
+                  const SizedBox(width: 8),
                   CircleAvatar(
                     radius: 32,
                     backgroundColor: Colors.white,
@@ -174,8 +174,8 @@ class _MainScreenState extends State<MainScreen> {
                       },
                     ),
                   ),
-                  SizedBox(width: 8),
-                  IconButton(icon: Icon(Icons.skip_next, color: Colors.white, size: 24), onPressed: () {}),
+                  const SizedBox(width: 8),
+                  IconButton(icon: const Icon(Icons.skip_next, color: Colors.white, size: 24), onPressed: () {}),
                 ],
               ),
             ),

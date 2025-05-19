@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:looping_tool_mvp/data/models/marker.dart';
 import 'package:looping_tool_mvp/data/models/segment.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:looping_tool_mvp/core/services/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:flutter/material.dart';
 
 /// The central ViewModel for the Looping Tool application.
 /// 
@@ -63,6 +64,13 @@ class LoopingToolViewModel extends ChangeNotifier {
   /// Reference to the audio service for playback control
   late AudioService audioService;
 
+  late AudioPlayer _audioPlayer;
+
+  LoopingToolViewModel() {
+    _audioPlayer = AudioPlayer();
+    audioService = AudioService();
+  }
+
   /// Sets a new audio file and resets all related state
   /// 
   /// This method:
@@ -74,27 +82,48 @@ class LoopingToolViewModel extends ChangeNotifier {
   /// - Clears any error messages
   /// - Generates new waveform data
   Future<void> setAudioFile(String path) async {
-    audioFilePath = path;
-    waveform = [];
-    markers.clear();
-    selectedSegment = null;
-    startPosition = null;
-    endPosition = null;
-    _errorMessage = null;
-    
-    await generateWaveform(path);
-    
-    notifyListeners();
+    try {
+      audioFilePath = path;
+      waveform = [];
+      markers.clear();
+      selectedSegment = null;
+      startPosition = null;
+      endPosition = null;
+      _errorMessage = null;
+      
+      // Set the audio file in the player
+      await _audioPlayer.setFilePath(path);
+      await audioService.loadFile(path);
+      
+      // Generate waveform
+      await generateWaveform(path);
+      
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error setting audio file: $e');
+      _errorMessage = 'Error loading audio file';
+      notifyListeners();
+    }
   }
 
   /// Opens a file picker to select an audio file
   /// Returns the selected file path or null if cancelled
   Future<String?> pickAudioFile() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.audio);
-    if (result != null && result.files.single.path != null) {
-      final path = result.files.single.path!;
-      await setAudioFile(path);
-      return path;
+    try {
+      final typeGroup = XTypeGroup(
+        label: 'Audio',
+        extensions: ['mp3', 'wav', 'ogg', 'm4a'],
+      );
+      final file = await openFile(acceptedTypeGroups: [typeGroup]);
+      
+      if (file != null) {
+        await setAudioFile(file.path);
+        return file.path;
+      }
+    } catch (e) {
+      debugPrint('Error loading audio file: $e');
+      _errorMessage = 'Error loading audio file';
+      notifyListeners();
     }
     return null;
   }
@@ -126,7 +155,6 @@ class LoopingToolViewModel extends ChangeNotifier {
   /// 
   /// Sets an error message if validation fails
   void addMarker(String label, Duration timestamp) {
-    // Check if marker already exists at this position
     final existingMarker = markers.firstWhere(
       (m) => (m.timestamp - timestamp).inMilliseconds.abs() < 100,
       orElse: () => Marker(label: '', timestamp: Duration.zero),
@@ -164,8 +192,6 @@ class LoopingToolViewModel extends ChangeNotifier {
       orElse: () => Marker(label: '', timestamp: Duration.zero),
     );
 
-    print('Selecting segment: $startLabel (${start.timestamp}) to $endLabel (${end.timestamp})');
-
     if (start.label.isEmpty || end.label.isEmpty) {
       _errorMessage = 'Invalid segment: Start or end marker not found';
       selectedSegment = null;
@@ -188,7 +214,6 @@ class LoopingToolViewModel extends ChangeNotifier {
     }
 
     selectedSegment = Segment(start: start, end: end);
-    print('Selected segment: ${start.label} (${start.timestamp}) to ${end.label} (${end.timestamp})');
     notifyListeners();
   }
 
@@ -241,17 +266,40 @@ class LoopingToolViewModel extends ChangeNotifier {
   /// Currently generates a basic pattern for demonstration purposes
   /// TODO: Implement actual waveform generation from audio data
   Future<void> generateWaveform(String filePath) async {
-    final player = AudioPlayer();
-    await player.setFilePath(filePath);
-    final duration = player.duration;
-    
-    // Generate a simple waveform (you can adjust the number of points)
-    final waveform = List<double>.generate(100, (index) => 
-      (index % 3 == 0) ? 0.8 : 0.3  // This creates a simple pattern
-    );
-    
-    this.waveform = waveform;
-    notifyListeners();
+    try {
+      // Create a temporary player to get audio duration
+      final tempPlayer = AudioPlayer();
+      await tempPlayer.setFilePath(filePath);
+      final duration = tempPlayer.duration;
+      await tempPlayer.dispose();
+
+      if (duration == null) {
+        throw Exception('Could not get audio duration');
+      }
+
+      // Generate a more realistic waveform pattern
+      final numPoints = 100;
+      final waveform = List<double>.generate(numPoints, (index) {
+        // Create a more natural-looking waveform pattern
+        final baseHeight = 0.3;
+        final variation = 0.5;
+        final frequency = 2.0;
+        return baseHeight + variation * (0.5 + 0.5 * (index % 3 == 0 ? 1.0 : 0.3));
+      });
+
+      this.waveform = waveform;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error generating waveform: $e');
+      _errorMessage = 'Error generating waveform';
+      notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
   }
 }
 

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../theme/app_colors.dart';
 import '../viewmodels/looping_tool_viewmodel.dart';
 import '../../../core/services/audio_service.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:marquee/marquee.dart';
 
 /// The header widget for the Looping Tool application.
@@ -52,9 +52,9 @@ class LoopingToolHeader extends StatelessWidget {
         // Top row: Navigation and session controls
         Row(
           children: [
-            Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            const Icon(Icons.arrow_back, color: AppColors.textPrimary),
             const SizedBox(width: 8),
-            Expanded(
+            const Expanded(
               child: Text(
                 'Session 1',
                 style: TextStyle(
@@ -69,7 +69,7 @@ class LoopingToolHeader extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey[800],
                 foregroundColor: Colors.white,
-                shape: StadiumBorder(),
+                shape: const StadiumBorder(),
                 elevation: 0,
               ),
               child: const Text('Save'),
@@ -87,15 +87,15 @@ class LoopingToolHeader extends StatelessWidget {
                 height: 20,
                 child: Marquee(
                   text: vm.audioFilePath!.split('/').last,
-                  style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
                   scrollAxis: Axis.horizontal,
                   blankSpace: 40.0,
                   velocity: 30.0,
-                  pauseAfterRound: Duration(seconds: 1),
+                  pauseAfterRound: const Duration(seconds: 1),
                   startPadding: 10.0,
-                  accelerationDuration: Duration(seconds: 1),
+                  accelerationDuration: const Duration(seconds: 1),
                   accelerationCurve: Curves.linear,
-                  decelerationDuration: Duration(milliseconds: 500),
+                  decelerationDuration: const Duration(milliseconds: 500),
                   decelerationCurve: Curves.easeOut,
                 ),
               ),
@@ -103,34 +103,37 @@ class LoopingToolHeader extends StatelessWidget {
               // Audio duration display
               Text(
                 formatDuration(audioService.duration),
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
               const SizedBox(width: 12),
               // File size display (currently hardcoded)
-              Text(
+              const Text(
                 '2.5 MB',
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
             ],
-            Spacer(),
+            const Spacer(),
             // File upload/change button
             TextButton(
               onPressed: () async {
-                final result = await FilePicker.platform.pickFiles(type: FileType.audio);
-                if (result != null && result.files.single.path != null) {
-                  await audioService.loadFile(result.files.single.path!);
-                  vm.setAudioFile(result.files.single.path!);
+                final typeGroup = XTypeGroup(
+                  label: 'Audio',
+                  extensions: ['mp3', 'wav', 'ogg', 'm4a'],
+                );
+                final file = await openFile(acceptedTypeGroups: [typeGroup]);
+                if (file != null) {
+                  await vm.setAudioFile(file.path);
                 }
               },
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 padding: EdgeInsets.zero,
-                minimumSize: Size(0, 0),
+                minimumSize: const Size(0, 0),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               child: Text(
                 vm.audioFilePath == null ? 'Upload Song' : 'Change',
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.accent,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,

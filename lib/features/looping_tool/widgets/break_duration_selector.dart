@@ -34,11 +34,11 @@ class BreakDurationSelector extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Break label
-        Text(
+        const Text(
           'Break',
           style: TextStyle(fontSize: 12, color: Colors.white),
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         // Decrement button
         InkWell(
           onTap: onDecrement,
@@ -50,18 +50,18 @@ class BreakDurationSelector extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 2),
             ),
-            child: Center(
+            child: const Center(
               child: Icon(Icons.remove, color: Colors.white, size: 14),
             ),
           ),
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         // Current break duration
         Text(
           '${breakSeconds}s',
-          style: TextStyle(fontSize: 12, color: Colors.white),
+          style: const TextStyle(fontSize: 12, color: Colors.white),
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         // Increment button
         InkWell(
           onTap: onIncrement,
@@ -73,7 +73,7 @@ class BreakDurationSelector extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 2),
             ),
-            child: Center(
+            child: const Center(
               child: Icon(Icons.add, color: Colors.white, size: 14),
             ),
           ),

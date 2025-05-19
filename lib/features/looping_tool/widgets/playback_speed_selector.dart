@@ -46,16 +46,16 @@ class PlaybackSpeedSelector extends StatelessWidget {
       children: [
         // Speed decrease button
         IconButton(
-          icon: Icon(Icons.fast_rewind, color: Colors.white, size: 18),
+          icon: const Icon(Icons.fast_rewind, color: Colors.white, size: 18),
           onPressed: onDecrement,
           padding: EdgeInsets.zero,
-          constraints: BoxConstraints(),
+          constraints: const BoxConstraints(),
         ),
         // Speed display container
         Container(
           height: 28,
           alignment: Alignment.center,
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.white, width: 1.2),
             borderRadius: BorderRadius.circular(6),
@@ -63,7 +63,7 @@ class PlaybackSpeedSelector extends StatelessWidget {
           child: Text(
             displaySpeed,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -73,10 +73,10 @@ class PlaybackSpeedSelector extends StatelessWidget {
         ),
         // Speed increase button
         IconButton(
-          icon: Icon(Icons.fast_forward, color: Colors.white, size: 18),
+          icon: const Icon(Icons.fast_forward, color: Colors.white, size: 18),
           onPressed: onIncrement,
           padding: EdgeInsets.zero,
-          constraints: BoxConstraints(),
+          constraints: const BoxConstraints(),
         ),
       ],
     );

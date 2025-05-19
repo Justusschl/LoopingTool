@@ -43,21 +43,21 @@ class LoopCountSelector extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 1.2),
             ),
-            child: Center(
+            child: const Center(
               child: Icon(Icons.remove, color: Colors.white, size: 16),
             ),
           ),
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         // Repeat icon
-        Icon(Icons.repeat, color: Colors.white, size: 18),
-        SizedBox(width: 4),
+        const Icon(Icons.repeat, color: Colors.white, size: 18),
+        const SizedBox(width: 4),
         // Current loop count
         Text(
           '$loopCount',
-          style: TextStyle(fontSize: 16, color: Colors.white),
+          style: const TextStyle(fontSize: 16, color: Colors.white),
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         // Increment button
         InkWell(
           onTap: onIncrement,
@@ -69,7 +69,7 @@ class LoopCountSelector extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 1.2),
             ),
-            child: Center(
+            child: const Center(
               child: Icon(Icons.add, color: Colors.white, size: 16),
             ),
           ),
